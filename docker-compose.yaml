@@ -1,0 +1,22 @@
+services:
+  backend:
+    build: .
+    volumes:
+      - type: bind
+        source: ./target
+        target: /app/target
+    ports:
+      - 8080:8080
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/issue-tracker
+      SPRING_DATASOURCE_USER: issuetracker
+      SPRING_DATASOURCE_PASSWORD: password
+  postgres:
+    user: postgres
+    image: postgres:latest
+    volumes:
+      - /var/lib/postgres/data
+    environment:
+      POSTGRES_USER: issuetracker
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: issue-tracker
