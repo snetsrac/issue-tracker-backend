@@ -18,32 +18,35 @@ import org.springframework.stereotype.Component;
 public class DataLoader implements CommandLineRunner {
     private static final int NUM_ISSUES = 1000;
 
-    Faker faker = new Faker();
-    Logger logger = Logger.getLogger(DataLoader.class);
+    @Autowired
+    private IssueRepository issueRepository;
 
-    @Autowired IssueRepository issueRepository;
+    private Faker faker = new Faker();
+    private Logger logger = Logger.getLogger(DataLoader.class);
 
     @Override
     public void run(String... args) throws Exception {
+
         logger.info("Running DataLoader...");
 
         insertIssues();
+
+        logger.info("Finished loading data.");
     }
 
     private void insertIssues() {
-        List<Issue> issues = new ArrayList<>();
+        if (issueRepository.count() == 0) {
+            List<Issue> issues = new ArrayList<>();
 
-        for (int i = 0; i < NUM_ISSUES; i++) {
-            Issue issue = new Issue(
-                faker.lorem().sentence(),
-                faker.lorem().paragraph()
-            );
+            for (int i = 0; i < NUM_ISSUES; i++) {
+                Issue issue = new Issue(
+                        faker.lorem().sentence(),
+                        faker.lorem().paragraph());
 
-            issues.add(issue);
+                issues.add(issue);
+            }
+
+            issueRepository.saveAll(issues);
         }
-
-        issueRepository.saveAll(issues);
-
-        logger.info("Inserted " + NUM_ISSUES + " issues");
     }
 }
