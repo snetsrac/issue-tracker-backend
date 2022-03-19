@@ -3,14 +3,20 @@ services:
     build: .
     volumes:
       - type: bind
-        source: ./target
-        target: /app/target
+        source: ./target/classes
+        target: /app/target/classes
+      - type: bind
+        source: ./target/test-classes
+        target: /app/target/test-classes
     ports:
-      - 8080:8080
+      - 80:8080
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/issue-tracker
       SPRING_DATASOURCE_USER: issuetracker
       SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DEVTOOLS_RESTART_ENABLED: true
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_SQL_INIT_MODE: always
   postgres:
     user: postgres
     image: postgres:latest
