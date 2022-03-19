@@ -16,12 +16,11 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_DEVTOOLS_RESTART_ENABLED: true
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_SQL_INIT_MODE: always
   postgres:
     user: postgres
     image: postgres:latest
     volumes:
-      - /var/lib/postgres/data
+      - ./src/main/sql:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_USER: issuetracker
       POSTGRES_PASSWORD: password
