@@ -13,11 +13,11 @@ import com.snetsrac.issuetracker.model.BaseEntity;
 @Table(name = "issue")
 public class Issue extends BaseEntity {
     @Column
-    @NotNull
+    @NotNull(message = "Issue title is required.")
     private String title;
 
     @Column
-    @NotNull
+    @NotNull(message = "Issue description is required.")
     private String description;
 
     public Issue() {
