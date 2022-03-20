@@ -5,16 +5,19 @@ import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 import com.snetsrac.issuetracker.model.BaseEntity;
 
 @Entity
 @Table(name = "issue")
 public class Issue extends BaseEntity {
-    @Column(nullable = false)
+    @Column
+    @NotNull
     private String title;
 
-    @Column(nullable = false)
+    @Column
+    @NotNull
     private String description;
 
     public Issue() {

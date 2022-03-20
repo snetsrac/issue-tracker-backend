@@ -1,5 +1,8 @@
 package com.snetsrac.issuetracker.issue;
 
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+
 import com.snetsrac.issuetracker.error.NotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +13,8 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,5 +45,11 @@ public class IssueController {
                 .orElseThrow(() -> new NotFoundException("Could not find issue " + id));
 
         return assembler.toModel(issue);
+    }
+
+    @PostMapping
+    @Transactional
+    public EntityModel<Issue> postIssue(@Valid @RequestBody Issue issue) {
+        return assembler.toModel(issueRepository.save(issue));
     }
 }
