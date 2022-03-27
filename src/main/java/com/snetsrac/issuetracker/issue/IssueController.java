@@ -1,21 +1,18 @@
 package com.snetsrac.issuetracker.issue;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
+import java.time.OffsetDateTime;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 
+import com.snetsrac.issuetracker.error.Problem;
+import com.snetsrac.issuetracker.issue.dto.IssueDto;
+import com.snetsrac.issuetracker.model.PagedDto;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
-import org.springframework.hateoas.mediatype.problem.Problem;
-import org.springframework.hateoas.server.EntityLinks;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,25 +27,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/issues")
 public class IssueController {
-    @Autowired
-    EntityLinks links;
 
     @Autowired
     private IssueRepository issueRepository;
 
     @Autowired
-    private IssueModelAssembler assembler;
-
-    @Autowired
-    private PagedResourcesAssembler<Issue> pagedAssembler;
+    private IssueMapper mapper;
 
     // Aggregate root
     @GetMapping
-    public ResponseEntity<Object> getIssues(Pageable pageable) {
+    public ResponseEntity<PagedDto<Issue, IssueDto>> getIssues(Pageable pageable) {
         Page<Issue> page = issueRepository.findAll(pageable);
-        PagedModel<EntityModel<Issue>> model = pagedAssembler.toModel(page, assembler);
+        PagedDto<Issue, IssueDto> dto = PagedDto.from(page, mapper);
 
-        return ResponseEntity.ok(model);
+        return ResponseEntity.ok(dto);
     }
 
     // Single item
@@ -57,28 +49,23 @@ public class IssueController {
         Optional<Issue> issue = issueRepository.findById(id);
         
         if (issue.isPresent()) {
-            return ResponseEntity.ok(assembler.toModel(issue.get()));
+            return ResponseEntity.ok(mapper.toDto(issue.get()));
         }
 
-        Problem problem = Problem.create()
-                .withTitle("Could not find issue " + id + ".")
-                .withStatus(HttpStatus.NOT_FOUND)
-                .withDetail("The issue does not exist.")
-                .withInstance(linkTo(methodOn(IssueController.class).getIssueById(id)).toUri());
-
+        Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".", OffsetDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
     }
 
     @PostMapping
     @Transactional
     public ResponseEntity<Object> postIssue(@Valid @RequestBody Issue issue) {
-        return ResponseEntity.ok(assembler.toModel(issueRepository.save(issue)));
+        return ResponseEntity.ok(mapper.toDto(issueRepository.save(issue)));
     }
 
     @PutMapping
     @Transactional
     public ResponseEntity<Object> putIssue(@Valid @RequestBody Issue issue) {
-        return ResponseEntity.ok(assembler.toModel(issueRepository.save(issue)));
+        return ResponseEntity.ok(mapper.toDto(issueRepository.save(issue)));
     }
 
     @DeleteMapping("/{id:\\d+}")
@@ -86,17 +73,12 @@ public class IssueController {
     public ResponseEntity<Object> deleteIssue(@PathVariable int id) {
         Optional<Issue> issue = issueRepository.findById(id);
         
-        if (!issue.isPresent()) {
-            Problem problem = Problem.create()
-                    .withTitle("Could not find issue " + id + ".")
-                    .withStatus(HttpStatus.NOT_FOUND)
-                    .withDetail("The issue does not exist.")
-                    .withInstance(linkTo(methodOn(IssueController.class).getIssueById(id)).toUri());
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+        if (issue.isPresent()) {
+            issueRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
         }
 
-        issueRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".", OffsetDateTime.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
     }
 }
