@@ -2,10 +2,13 @@ package com.snetsrac.issuetracker.seed;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import com.github.javafaker.Faker;
 import com.snetsrac.issuetracker.issue.Issue;
 import com.snetsrac.issuetracker.issue.IssueRepository;
+import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
+import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
 
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,7 @@ public class DataLoader implements CommandLineRunner {
 
     private Faker faker = new Faker();
     private Logger logger = Logger.getLogger(DataLoader.class);
+    private Random random = new Random();
 
     @Override
     public void run(String... args) throws Exception {
@@ -41,12 +45,20 @@ public class DataLoader implements CommandLineRunner {
             for (int i = 0; i < NUM_ISSUES; i++) {
                 Issue issue = new Issue(
                         faker.lorem().sentence(),
-                        faker.lorem().paragraph());
+                        faker.lorem().paragraph(),
+                        getRandomEnumValue(IssueStatus.class),
+                        getRandomEnumValue(IssuePriority.class));
 
                 issues.add(issue);
             }
 
             issueRepository.saveAll(issues);
         }
+    }
+
+    private <T extends Enum<?>> T getRandomEnumValue(Class<T> clazz) {
+        T[] constants = clazz.getEnumConstants();
+        int i = random.nextInt(constants.length);
+        return constants[i];
     }
 }

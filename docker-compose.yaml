@@ -9,7 +9,7 @@ services:
         source: ./target/test-classes
         target: /app/target/test-classes
     ports:
-      - 80:8080
+      - 8080:8080
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/issue-tracker
       SPRING_DATASOURCE_USER: issuetracker
@@ -21,6 +21,8 @@ services:
     image: postgres:latest
     volumes:
       - ./src/main/sql:/docker-entrypoint-initdb.d
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_USER: issuetracker
       POSTGRES_PASSWORD: password

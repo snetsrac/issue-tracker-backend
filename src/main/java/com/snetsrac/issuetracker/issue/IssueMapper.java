@@ -13,6 +13,8 @@ public class IssueMapper implements Mapper<Issue, IssueDto> {
         dto.setId(issue.getId());
         dto.setTitle(issue.getTitle());
         dto.setDescription(issue.getDescription());
+        dto.setStatus(issue.getStatus());
+        dto.setPriority(issue.getPriority());
 
         return dto;
     }
