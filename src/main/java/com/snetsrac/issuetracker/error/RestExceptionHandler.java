@@ -1,10 +1,12 @@
 package com.snetsrac.issuetracker.error;
 
-import java.time.OffsetDateTime;
 import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,18 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     Logger logger = LoggerFactory.getLogger(RestExceptionHandler.class);
 
+    @ExceptionHandler
+    protected ResponseEntity<Problem> handleJsonMappingException(JsonMappingException ex) {
+        Problem problem = new Problem(HttpStatus.BAD_REQUEST, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
+    @ExceptionHandler
+    protected ResponseEntity<Problem> handlePropertyReferenceException(PropertyReferenceException ex) {
+        Problem problem = new Problem(HttpStatus.BAD_REQUEST, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
             HttpHeaders headers, HttpStatus status, WebRequest request) {
@@ -30,7 +44,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
                 .map(ObjectError::getDefaultMessage)
                 .collect(Collectors.joining("\n"));
 
-        Problem problem = new Problem(status, messages, OffsetDateTime.now());
+        Problem problem = new Problem(status, messages);
 
         return ResponseEntity.status(status).body(problem);
     }
@@ -39,7 +53,13 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
             HttpHeaders headers, HttpStatus status, WebRequest request) {
 
-        Problem problem = new Problem(status, "Required request body is missing.", OffsetDateTime.now());
+        Problem problem;
+        
+        if (ex.getCause() instanceof JsonMappingException) {
+            problem = new Problem(status, "Request body is invalid.");
+        } else {
+            problem = new Problem(status, "Required request body is missing.");
+        }
 
         return ResponseEntity.status(status).body(problem);
     }
@@ -48,16 +68,16 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
 
-        Problem problem = new Problem(status, ex.getMessage(), OffsetDateTime.now());
+        Problem problem = new Problem(status, ex.getMessage());
 
         return ResponseEntity.status(status).body(problem);
     }
 
     @ExceptionHandler
-    public ResponseEntity<Problem> handleExceptionCatchAll(Exception exc) {
-        logger.error(exc.getMessage(), exc);
+    public ResponseEntity<Problem> handleExceptionCatchAll(Exception ex) {
+        logger.error(ex.getMessage(), ex);
 
-        Problem problem = new Problem(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.", OffsetDateTime.now());
+        Problem problem = new Problem(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.");
 
         return new ResponseEntity<>(problem, HttpStatus.INTERNAL_SERVER_ERROR);
     }
