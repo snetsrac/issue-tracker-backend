@@ -6,7 +6,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
 
 import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
 import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
@@ -18,10 +17,7 @@ import org.hibernate.annotations.Type;
 @Table(name = "issue")
 public class Issue extends BaseEntity {
 
-    @NotNull(message = "Issue title is required.")
     private String title;
-
-    @NotNull(message = "Issue description is required.")
     private String description;
 
     @Enumerated(EnumType.STRING)

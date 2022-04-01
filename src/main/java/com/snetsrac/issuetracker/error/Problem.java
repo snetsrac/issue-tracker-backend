@@ -13,6 +13,12 @@ public class Problem {
     public Problem() {
     }
 
+    public Problem(HttpStatus status, String message) {
+        this.httpStatus = status;
+        this.message = message;
+        this.timestamp = OffsetDateTime.now();
+    }
+
     public Problem(HttpStatus status, String message, OffsetDateTime timestamp) {
         this.httpStatus = status;
         this.message = message;

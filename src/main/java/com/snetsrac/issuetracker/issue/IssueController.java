@@ -7,7 +7,9 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import com.snetsrac.issuetracker.error.Problem;
+import com.snetsrac.issuetracker.issue.dto.IssueCreationDto;
 import com.snetsrac.issuetracker.issue.dto.IssueDto;
+import com.snetsrac.issuetracker.issue.dto.IssueUpdateDto;
 import com.snetsrac.issuetracker.model.PagedDto;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,13 @@ public class IssueController {
         return ResponseEntity.ok(dto);
     }
 
+    @PostMapping
+    @Transactional
+    public ResponseEntity<Object> postIssue(@Valid @RequestBody IssueCreationDto dto) {
+        Issue issue = mapper.issueCreationDtoToIssue(dto);
+        return ResponseEntity.ok(mapper.toDto(issueRepository.save(issue)));
+    }
+
     // Single item
     @GetMapping("/{id:\\d+}")
     public ResponseEntity<Object> getIssueById(@PathVariable int id) {
@@ -52,20 +61,22 @@ public class IssueController {
             return ResponseEntity.ok(mapper.toDto(issue.get()));
         }
 
-        Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".", OffsetDateTime.now());
+        Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
     }
 
-    @PostMapping
+    @PutMapping("/{id:\\d+}")
     @Transactional
-    public ResponseEntity<Object> postIssue(@Valid @RequestBody Issue issue) {
-        return ResponseEntity.ok(mapper.toDto(issueRepository.save(issue)));
-    }
+    public ResponseEntity<Object> putIssue(@PathVariable int id, @Valid @RequestBody IssueUpdateDto dto) {
+        Optional<Issue> issue = issueRepository.findById(id);
+        
+        if (issue.isPresent()) {
+            mapper.issueUpdateDtoOntoIssue(dto, issue.get());
+            return ResponseEntity.ok(mapper.toDto(issueRepository.save(issue.get()))); 
+        }
 
-    @PutMapping
-    @Transactional
-    public ResponseEntity<Object> putIssue(@Valid @RequestBody Issue issue) {
-        return ResponseEntity.ok(mapper.toDto(issueRepository.save(issue)));
+        Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
     }
 
     @DeleteMapping("/{id:\\d+}")
