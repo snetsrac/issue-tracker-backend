@@ -1,6 +1,5 @@
 package com.snetsrac.issuetracker.issue;
 
-import java.time.OffsetDateTime;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
@@ -15,6 +14,7 @@ import com.snetsrac.issuetracker.model.PagedDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -38,7 +38,7 @@ public class IssueController {
 
     // Aggregate root
     @GetMapping
-    public ResponseEntity<PagedDto<Issue, IssueDto>> getIssues(Pageable pageable) {
+    public ResponseEntity<PagedDto<Issue, IssueDto>> getIssues(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
         Page<Issue> page = issueRepository.findAll(pageable);
         PagedDto<Issue, IssueDto> dto = PagedDto.from(page, mapper);
 
@@ -89,7 +89,7 @@ public class IssueController {
             return ResponseEntity.noContent().build();
         }
 
-        Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".", OffsetDateTime.now());
+        Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
     }
 }
