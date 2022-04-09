@@ -1,0 +1,928 @@
+openapi: 3.0.3
+info:
+  title: Issue Tracker
+  description: "Web application enabling software professionals to manage feature\
+    \ development, bug-fixing, etc."
+  version: 0.0.1-SNAPSHOT
+servers:
+- url: http://localhost:8080
+security:
+- BasicAuth: []
+tags:
+- name: users
+  description: Authentication and user management
+- name: issues
+  description: "Represents a bug, new feature, etc."
+paths:
+  /login:
+    post:
+      tags:
+      - users
+      summary: Logs a user into the system
+      operationId: loginUser
+      requestBody:
+        $ref: '#/components/requestBodies/loginUser'
+      responses:
+        "200":
+          description: Return a user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /logout:
+    post:
+      tags:
+      - users
+      summary: Logs the user out
+      operationId: logoutUser
+      responses:
+        "204":
+          description: No Content
+          content: {}
+  /register:
+    post:
+      tags:
+      - users
+      summary: Register a new user and log in
+      operationId: registerUser
+      requestBody:
+        $ref: '#/components/requestBodies/registerUser'
+      responses:
+        "201":
+          description: Return a user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /user:
+    get:
+      tags:
+      - users
+      summary: "Get the currently logged in user, if any"
+      operationId: getCurrentUser
+      responses:
+        "200":
+          description: Return a user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users:
+    get:
+      tags:
+      - users
+      summary: Get a paginated list of all users
+      operationId: getUsers
+      parameters:
+      - name: page
+        in: query
+        description: Page you want to retrieve.
+        required: false
+        style: form
+        explode: true
+        schema:
+          minimum: 0
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        description: Size of the page you want to retrieve.
+        required: false
+        style: form
+        explode: true
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+          format: int32
+          default: 20
+      - name: sort
+        in: query
+        description: "Properties to sort by, with optional asc/desc and ignorecase\
+          \ specifiers. Defaults to case-sensitive ascending. Must match /^\\w+(,asc|,desc)?(,ignorecase)?$/."
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            pattern: "^\\w+(,asc|,desc)?(,ignorecase)?$"
+            type: string
+        examples:
+          title:
+            summary: Sort by title
+            value:
+            - title
+          titleDescending:
+            summary: "Sort by title, descending"
+            value:
+            - "title,desc"
+          description:
+            summary: "Sort by description, case-insensitive"
+            value:
+            - "description,ignorecase"
+          titleDescription:
+            summary: "Sort by priority, then title"
+            value:
+            - priority
+            - title
+      responses:
+        "200":
+          description: Return a page of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/{username}:
+    get:
+      tags:
+      - users
+      summary: Get a user by username
+      operationId: getUserByUsername
+      parameters:
+      - name: username
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Return a user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+      - users
+      summary: Update a user's information
+      description: This can only be done by the logged in user.
+      operationId: updateUser
+      parameters:
+      - name: username
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/updateUser'
+      responses:
+        "200":
+          description: Return a user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/{username}/issues:
+    get:
+      tags:
+      - users
+      summary: Get a paginated list of the user's submitted/assigned issues
+      operationId: getUserIssues
+      parameters:
+      - name: username
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: page
+        in: query
+        description: Page you want to retrieve.
+        required: false
+        style: form
+        explode: true
+        schema:
+          minimum: 0
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        description: Size of the page you want to retrieve.
+        required: false
+        style: form
+        explode: true
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+          format: int32
+          default: 20
+      - name: sort
+        in: query
+        description: "Properties to sort by, with optional asc/desc and ignorecase\
+          \ specifiers. Defaults to case-sensitive ascending. Must match /^\\w+(,asc|,desc)?(,ignorecase)?$/."
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            pattern: "^\\w+(,asc|,desc)?(,ignorecase)?$"
+            type: string
+        examples:
+          title:
+            summary: Sort by title
+            value:
+            - title
+          titleDescending:
+            summary: "Sort by title, descending"
+            value:
+            - "title,desc"
+          description:
+            summary: "Sort by description, case-insensitive"
+            value:
+            - "description,ignorecase"
+          titleDescription:
+            summary: "Sort by priority, then title"
+            value:
+            - priority
+            - title
+      responses:
+        "200":
+          description: Return a page of issues
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /issues:
+    get:
+      tags:
+      - issues
+      summary: Get a paginated list of all issues
+      operationId: getAllIssues
+      parameters:
+      - name: page
+        in: query
+        description: Page you want to retrieve.
+        required: false
+        style: form
+        explode: true
+        schema:
+          minimum: 0
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        description: Size of the page you want to retrieve.
+        required: false
+        style: form
+        explode: true
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+          format: int32
+          default: 20
+      - name: sort
+        in: query
+        description: "Properties to sort by, with optional asc/desc and ignorecase\
+          \ specifiers. Defaults to case-sensitive ascending. Must match /^\\w+(,asc|,desc)?(,ignorecase)?$/."
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            pattern: "^\\w+(,asc|,desc)?(,ignorecase)?$"
+            type: string
+        examples:
+          title:
+            summary: Sort by title
+            value:
+            - title
+          titleDescending:
+            summary: "Sort by title, descending"
+            value:
+            - "title,desc"
+          description:
+            summary: "Sort by description, case-insensitive"
+            value:
+            - "description,ignorecase"
+          titleDescription:
+            summary: "Sort by priority, then title"
+            value:
+            - priority
+            - title
+      responses:
+        "200":
+          description: Return a page of issues
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - issues
+      summary: Create a new issue
+      operationId: createIssue
+      requestBody:
+        $ref: '#/components/requestBodies/createIssue'
+      responses:
+        "201":
+          description: Return an issue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /issues/{id}:
+    get:
+      tags:
+      - issues
+      summary: Get an issue by id
+      operationId: getIssueById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/Id'
+      responses:
+        "200":
+          description: Return an issue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+      - issues
+      summary: Update an existing issue
+      operationId: updateIssue
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        $ref: '#/components/requestBodies/updateIssue'
+      responses:
+        "200":
+          description: Return an issue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+      - issues
+      summary: Delete an existing issue
+      operationId: deleteIssue
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/Id'
+      responses:
+        "204":
+          description: No Content
+          content: {}
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Id:
+      type: integer
+      format: int32
+    User:
+      required:
+      - displayName
+      - email
+      - imageHref
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: string
+        imageHref:
+          type: string
+    Issue:
+      required:
+      - createdAt
+      - description
+      - id
+      - priority
+      - status
+      - submitter
+      - title
+      - updatedAt
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/IssueStatus'
+        priority:
+          $ref: '#/components/schemas/IssuePriority'
+        submitter:
+          $ref: '#/components/schemas/User'
+        assignees:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    IssueStatus:
+      type: string
+      enum:
+      - open
+      - in progress
+      - more info needed
+      - resolved
+    IssuePriority:
+      type: string
+      enum:
+      - high
+      - medium
+      - low
+    PageMetadata:
+      required:
+      - number
+      - size
+      - totalElements
+      - totalPages
+      type: object
+      properties:
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        number:
+          type: integer
+          format: int32
+    ErrorResponse:
+      required:
+      - message
+      - status
+      - timestamp
+      - title
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
+        title:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    inline_response_200:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    inline_response_200_1:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+  responses:
+    User:
+      description: Return a user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    UsersPage:
+      description: Return a page of users
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/inline_response_200'
+    Issue:
+      description: Return an issue
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Issue'
+    IssuesPage:
+      description: Return a page of issues
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/inline_response_200_1'
+    NoContent:
+      description: No Content
+      content: {}
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      style: simple
+      explode: false
+      schema:
+        $ref: '#/components/schemas/Id'
+    username:
+      name: username
+      in: path
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    page:
+      name: page
+      in: query
+      description: Page you want to retrieve.
+      required: false
+      style: form
+      explode: true
+      schema:
+        minimum: 0
+        type: integer
+        format: int32
+        default: 0
+    size:
+      name: size
+      in: query
+      description: Size of the page you want to retrieve.
+      required: false
+      style: form
+      explode: true
+      schema:
+        maximum: 100
+        minimum: 1
+        type: integer
+        format: int32
+        default: 20
+    sort:
+      name: sort
+      in: query
+      description: "Properties to sort by, with optional asc/desc and ignorecase specifiers.\
+        \ Defaults to case-sensitive ascending. Must match /^\\w+(,asc|,desc)?(,ignorecase)?$/."
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: array
+        items:
+          pattern: "^\\w+(,asc|,desc)?(,ignorecase)?$"
+          type: string
+      examples:
+        title:
+          summary: Sort by title
+          value:
+          - title
+        titleDescending:
+          summary: "Sort by title, descending"
+          value:
+          - "title,desc"
+        description:
+          summary: "Sort by description, case-insensitive"
+          value:
+          - "description,ignorecase"
+        titleDescription:
+          summary: "Sort by priority, then title"
+          value:
+          - priority
+          - title
+  requestBodies:
+    loginUser:
+      content:
+        application/json:
+          schema:
+            required:
+            - password
+            - username
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+                format: password
+      required: true
+    registerUser:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/User'
+            - required:
+              - password
+              type: object
+              properties:
+                password:
+                  type: string
+                  format: password
+      required: true
+    updateUser:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/User'
+            - type: object
+              properties:
+                oldPassword:
+                  type: string
+                  format: password
+                newPassword:
+                  type: string
+                  format: password
+      required: true
+    createIssue:
+      content:
+        application/json:
+          schema:
+            required:
+            - description
+            - priority
+            - title
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              priority:
+                $ref: '#/components/schemas/IssuePriority'
+      required: true
+    updateIssue:
+      content:
+        application/json:
+          schema:
+            required:
+            - assigneeIds
+            - description
+            - priority
+            - status
+            - title
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              status:
+                $ref: '#/components/schemas/IssueStatus'
+              priority:
+                $ref: '#/components/schemas/IssuePriority'
+              assigneeIds:
+                type: array
+                items:
+                  type: integer
+                  format: int32
+      required: true
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
