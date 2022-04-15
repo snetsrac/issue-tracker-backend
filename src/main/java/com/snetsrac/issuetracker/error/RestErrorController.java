@@ -14,10 +14,21 @@ public class RestErrorController implements ErrorController {
     @RequestMapping("/error")
     public ResponseEntity<Problem> handle(HttpServletRequest request) {
         HttpStatus status = HttpStatus.valueOf((Integer) request.getAttribute("javax.servlet.error.status_code"));
-        String message = (String) request.getAttribute("javax.servlet.error.message");
 
-        if (status == HttpStatus.NOT_FOUND) {
-            message = "No resource found at " + (String) request.getAttribute("javax.servlet.error.request_uri");
+        String message;
+
+        switch (status) {
+            case UNAUTHORIZED:
+                message = "User is not logged in or login credentials are invalid.";
+                break;
+            case FORBIDDEN:
+                message = "User does not have access to that resource.";
+                break;
+            case NOT_FOUND:
+                message = "No resource found at " + (String) request.getAttribute("javax.servlet.error.request_uri");
+                break;
+            default:
+                message = (String) request.getAttribute("javax.servlet.error.message");
         }
 
         Problem problem = new Problem(status, message);
