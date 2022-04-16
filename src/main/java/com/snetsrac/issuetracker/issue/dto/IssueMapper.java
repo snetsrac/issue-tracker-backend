@@ -1,10 +1,8 @@
-package com.snetsrac.issuetracker.issue;
+package com.snetsrac.issuetracker.issue.dto;
 
 import javax.validation.Valid;
 
-import com.snetsrac.issuetracker.issue.dto.IssueCreationDto;
-import com.snetsrac.issuetracker.issue.dto.IssueDto;
-import com.snetsrac.issuetracker.issue.dto.IssueUpdateDto;
+import com.snetsrac.issuetracker.issue.Issue;
 import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
 import com.snetsrac.issuetracker.model.Mapper;
 

@@ -1,13 +1,11 @@
 package com.snetsrac.issuetracker.issue;
 
-import java.util.Optional;
-
-import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import com.snetsrac.issuetracker.error.Problem;
 import com.snetsrac.issuetracker.issue.dto.IssueCreationDto;
 import com.snetsrac.issuetracker.issue.dto.IssueDto;
+import com.snetsrac.issuetracker.issue.dto.IssueMapper;
 import com.snetsrac.issuetracker.issue.dto.IssueUpdateDto;
 import com.snetsrac.issuetracker.model.PagedDto;
 
@@ -31,65 +29,62 @@ import org.springframework.web.bind.annotation.RestController;
 public class IssueController {
 
     @Autowired
-    private IssueRepository issueRepository;
+    private IssueService issueService;
 
     @Autowired
-    private IssueMapper mapper;
+    private IssueMapper issueMapper;
 
     // Aggregate root
     @GetMapping
     public ResponseEntity<PagedDto<Issue, IssueDto>> getIssues(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
-        Page<Issue> page = issueRepository.findAll(pageable);
-        PagedDto<Issue, IssueDto> dto = PagedDto.from(page, mapper);
+        Page<Issue> page = issueService.findAll(pageable);
+        PagedDto<Issue, IssueDto> dto = PagedDto.from(page, issueMapper);
 
         return ResponseEntity.ok(dto);
-    }
-
-    @PostMapping
-    @Transactional
-    public ResponseEntity<Object> postIssue(@Valid @RequestBody IssueCreationDto dto) {
-        Issue issue = mapper.issueCreationDtoToIssue(dto);
-        return ResponseEntity.ok(mapper.toDto(issueRepository.save(issue)));
     }
 
     // Single item
     @GetMapping("/{id:\\d+}")
     public ResponseEntity<Object> getIssueById(@PathVariable int id) {
-        Optional<Issue> issue = issueRepository.findById(id);
+        Issue issue = issueService.findById(id);
         
-        if (issue.isPresent()) {
-            return ResponseEntity.ok(mapper.toDto(issue.get()));
+        if (issue == null) {
+            Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
         }
 
-        Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+        return ResponseEntity.ok(issueMapper.toDto(issue));
+    }
+
+    @PostMapping
+    public ResponseEntity<Object> postIssue(@Valid @RequestBody IssueCreationDto dto) {
+        Issue issue = issueMapper.issueCreationDtoToIssue(dto);
+        return ResponseEntity.ok(issueMapper.toDto(issueService.save(issue)));
     }
 
     @PutMapping("/{id:\\d+}")
-    @Transactional
     public ResponseEntity<Object> putIssue(@PathVariable int id, @Valid @RequestBody IssueUpdateDto dto) {
-        Optional<Issue> issue = issueRepository.findById(id);
+        Issue issue = issueService.findById(id);
         
-        if (issue.isPresent()) {
-            mapper.issueUpdateDtoOntoIssue(dto, issue.get());
-            return ResponseEntity.ok(mapper.toDto(issueRepository.save(issue.get()))); 
+        if (issue == null) {
+            Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
         }
 
-        Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+        issueMapper.issueUpdateDtoOntoIssue(dto, issue);
+        return ResponseEntity.ok(issueMapper.toDto(issueService.save(issue))); 
     }
 
     @DeleteMapping("/{id:\\d+}")
-    @Transactional
     public ResponseEntity<Object> deleteIssue(@PathVariable int id) {
-        Optional<Issue> issue = issueRepository.findById(id);
+        Issue issue = issueService.findById(id);
         
-        if (issue.isPresent()) {
-            issueRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
+        if (issue == null) {
+            Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
         }
 
-        Problem problem = new Problem(HttpStatus.NOT_FOUND, "Could not find issue " + id + ".");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+        issueService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
