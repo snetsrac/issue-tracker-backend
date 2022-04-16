@@ -12,10 +12,12 @@ services:
       - 8080:8080
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/issue-tracker
-      SPRING_DATASOURCE_USER: issuetracker
+      SPRING_DATASOURCE_USERNAME: issuetracker
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_DEVTOOLS_RESTART_ENABLED: true
       SPRING_PROFILES_ACTIVE: dev
+    env_file:
+      - .env
   postgres:
     user: postgres
     image: postgres:latest
