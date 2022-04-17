@@ -42,6 +42,11 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.auth0</groupId>
+			<artifactId>auth0</artifactId>
+			<version>1.40.2</version>
+		</dependency>
+		<dependency>
 			<groupId>com.github.javafaker</groupId>
 			<artifactId>javafaker</artifactId>
 			<version>1.0.2</version>
