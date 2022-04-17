@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,6 +39,7 @@ public class IssueController {
 
     // Aggregate root
     @GetMapping
+    @PreAuthorize("hasAuthority('read:issues')")
     public PagedDto<Issue, IssueDto> getIssues(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
         Page<Issue> page = issueService.findAll(pageable);
         return PagedDto.from(page, issueMapper);
@@ -45,6 +47,7 @@ public class IssueController {
 
     // Single item
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('read:issues')")
     public IssueDto getIssueById(@PathVariable String id) {
         Issue issue = issueService.findById(convertPathVariableToInt(id));
         
@@ -56,12 +59,14 @@ public class IssueController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('write:issues')")
     public ResponseEntity<IssueDto> postIssue(@RequestBody @Valid IssueCreationDto dto) {
         Issue issue = issueService.save(issueMapper.issueCreationDtoToIssue(dto));
         return ResponseEntity.created(URI.create("/issues/" + issue.getId())).body(issueMapper.toDto(issue));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('write:issues')")
     public IssueDto putIssue(@PathVariable String id, @RequestBody @Valid IssueUpdateDto dto) {
         Issue issue = issueService.findById(convertPathVariableToInt(id));
         
@@ -74,6 +79,7 @@ public class IssueController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('delete:issues')")
     public ResponseEntity<Object> deleteIssue(@PathVariable String id) {
         int idInt = convertPathVariableToInt(id);
         Issue issue = issueService.findById(idInt);
