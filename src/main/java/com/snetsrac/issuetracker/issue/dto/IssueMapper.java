@@ -3,6 +3,7 @@ package com.snetsrac.issuetracker.issue.dto;
 import javax.validation.Valid;
 
 import com.snetsrac.issuetracker.issue.Issue;
+import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
 import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
 import com.snetsrac.issuetracker.model.Mapper;
 
@@ -28,7 +29,7 @@ public class IssueMapper implements Mapper<Issue, IssueDto> {
         issue.setTitle(dto.getTitle());
         issue.setDescription(dto.getDescription());
         issue.setStatus(IssueStatus.OPEN);
-        issue.setPriority(dto.getPriority());
+        issue.setPriority(IssuePriority.valueOf(dto.getPriority().toUpperCase()));
 
         return issue;
     }
@@ -36,7 +37,7 @@ public class IssueMapper implements Mapper<Issue, IssueDto> {
     public void issueUpdateDtoOntoIssue(@Valid IssueUpdateDto dto, Issue issue) {
         issue.setTitle(dto.getTitle());
         issue.setDescription(dto.getDescription());
-        issue.setStatus(dto.getStatus());
-        issue.setPriority(dto.getPriority());
+        issue.setStatus(IssueStatus.valueOf(dto.getStatus().toUpperCase()));
+        issue.setPriority(IssuePriority.valueOf(dto.getPriority().toUpperCase()));
     }
 }

@@ -1,23 +1,25 @@
 package com.snetsrac.issuetracker.issue.dto;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
 import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
+import com.snetsrac.issuetracker.model.EnumString;
 
 public class IssueUpdateDto {
-    @NotBlank(message = "Issue title is required.")
+    @NotBlank(message = "{issue.title.required}")
     private String title;
 
-    @NotBlank(message = "Issue description is required.")
+    @NotBlank(message = "{issue.description.required}")
     private String description;
 
-    @NotNull(message = "Issue status is required.")
-    private IssueStatus status;
+    @NotBlank(message = "{issue.status.required}")
+    @EnumString(enumClass = IssueStatus.class, message = "{issue.status.valid}")
+    private String status;
 
-    @NotNull(message = "Issue priority is required.")
-    private IssuePriority priority;
+    @NotBlank(message = "{issue.priority.required")
+    @EnumString(enumClass = IssuePriority.class, message = "{issue.priority.valid}")
+    private String priority;
 
     public String getTitle() {
         return title;
@@ -35,19 +37,19 @@ public class IssueUpdateDto {
         this.description = description;
     }
 
-    public IssueStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(IssueStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
-    public IssuePriority getPriority() {
+    public String getPriority() {
         return priority;
     }
 
-    public void setPriority(IssuePriority priority) {
+    public void setPriority(String priority) {
         this.priority = priority;
     }
 }
