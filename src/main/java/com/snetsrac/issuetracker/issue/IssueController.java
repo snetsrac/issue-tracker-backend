@@ -1,16 +1,21 @@
 package com.snetsrac.issuetracker.issue;
 
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.validation.Valid;
 
+import com.auth0.json.mgmt.users.User;
 import com.snetsrac.issuetracker.error.BadRequestException;
 import com.snetsrac.issuetracker.error.NotFoundException;
 import com.snetsrac.issuetracker.issue.dto.IssueCreationDto;
 import com.snetsrac.issuetracker.issue.dto.IssueDto;
 import com.snetsrac.issuetracker.issue.dto.IssueMapper;
 import com.snetsrac.issuetracker.issue.dto.IssueUpdateDto;
-import com.snetsrac.issuetracker.model.PagedDto;
+import com.snetsrac.issuetracker.model.PageDto;
+import com.snetsrac.issuetracker.user.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,8 +35,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/issues")
+@RequestMapping(IssueController.ENDPOINT)
 public class IssueController {
+
+    public static final String ENDPOINT = "/issues";
 
     @Autowired
     private IssueService issueService;
@@ -37,12 +46,18 @@ public class IssueController {
     @Autowired
     private IssueMapper issueMapper;
 
+    @Autowired
+    private UserService userService;
+
     // Aggregate root
     @GetMapping
     @PreAuthorize("hasAuthority('read:issues')")
-    public PagedDto<Issue, IssueDto> getIssues(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
+    public PageDto<IssueDto> getIssues(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
         Page<Issue> page = issueService.findAll(pageable);
-        return PagedDto.from(page, issueMapper);
+        Set<String> userIds = getUserIds(page);
+        Map<String, User> userMap = userService.findByIds(userIds);
+        PageDto<IssueDto> dto = issueMapper.toPagedDto(page, userMap);
+        return dto;
     }
 
     // Single item
@@ -55,18 +70,25 @@ public class IssueController {
             throw new NotFoundException("issue.not-found");
         }
 
-        return issueMapper.toDto(issue);
+        Set<String> userIds = getUserIds(issue);
+        Map<String, User> userMap = userService.findByIds(userIds);
+        return issueMapper.toDto(issue, userMap);
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('write:issues')")
-    public ResponseEntity<IssueDto> postIssue(@RequestBody @Valid IssueCreationDto dto) {
-        Issue issue = issueService.save(issueMapper.issueCreationDtoToIssue(dto));
-        return ResponseEntity.created(URI.create("/issues/" + issue.getId())).body(issueMapper.toDto(issue));
+    @PreAuthorize("hasAuthority('submit:issues')")
+    public ResponseEntity<IssueDto> postIssue(@RequestBody @Valid IssueCreationDto dto, Authentication auth) {
+        String userId = ((JwtAuthenticationToken) auth).getToken().getSubject();
+        Issue issue = issueService.save(issueMapper.issueCreationDtoToIssue(dto, userId));
+        URI location = URI.create(ENDPOINT + issue.getId());
+
+        Set<String> userIds = getUserIds(issue);
+        Map<String, User> userMap = userService.findByIds(userIds);
+        return ResponseEntity.created(location).body(issueMapper.toDto(issue, userMap));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('write:issues')")
+    @PreAuthorize("hasAnyAuthority('submit:issues', 'modify:issues')")
     public IssueDto putIssue(@PathVariable String id, @RequestBody @Valid IssueUpdateDto dto) {
         Issue issue = issueService.findById(convertPathVariableToInt(id));
         
@@ -74,8 +96,11 @@ public class IssueController {
             throw new NotFoundException("issue.not-found");
         }
 
-        issueMapper.issueUpdateDtoOntoIssue(dto, issue);
-        return issueMapper.toDto(issueService.save(issue));
+        issue = issueService.save(issueMapper.issueUpdateDtoOntoIssue(dto, issue));
+
+        Set<String> userIds = getUserIds(issue);
+        Map<String, User> userMap = userService.findByIds(userIds);
+        return issueMapper.toDto(issue, userMap);
     }
 
     @DeleteMapping("/{id}")
@@ -104,5 +129,23 @@ public class IssueController {
         } catch (NumberFormatException e) {
             throw new BadRequestException("issue.id.valid");
         }
+    }
+
+    private Set<String> getUserIds(Page<Issue> page) {
+        Set<String> userIds = new HashSet<>();
+
+        for (Issue issue : page.getContent()) {
+            userIds.add(issue.getSubmitterId());
+        }
+
+        return userIds;
+    }
+
+    private Set<String> getUserIds(Issue issue) {
+        Set<String> userIds = new HashSet<>();
+
+        userIds.add(issue.getSubmitterId());
+
+        return userIds;
     }
 }

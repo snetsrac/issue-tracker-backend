@@ -2,6 +2,7 @@ package com.snetsrac.issuetracker.issue.dto;
 
 import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
 import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
+import com.snetsrac.issuetracker.user.dto.UserDto;
 
 public class IssueDto {
     private int id;
@@ -9,6 +10,7 @@ public class IssueDto {
     private String description;
     private IssueStatus status;
     private IssuePriority priority;
+    private UserDto submitter;
 
     public int getId() {
         return id;
@@ -49,5 +51,13 @@ public class IssueDto {
 
     public void setPriority(IssuePriority priority) {
         this.priority = priority;
+    }
+
+    public UserDto getSubmitter() {
+        return submitter;
+    }
+
+    public void setSubmitter(UserDto submitter) {
+        this.submitter = submitter;
     }
 }

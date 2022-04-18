@@ -43,6 +43,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Map<String, User> findByIds(Collection<String> ids) {
+        Request<UsersPage> request = managementAPI.users().list(userFilter(ids));
+        UsersPage usersPage = executeRequest(request);
+        Map<String, User> userMap = new HashMap<>();
+
+        if (usersPage != null) {
+            usersPage.getItems().forEach(user -> {
+                userMap.put(user.getId(), user);
+            });
+        }
+
+        return userMap;
+    }
+
+    @Override
     public User findByUsername(String username) {
         Request<UsersPage> request = managementAPI.users().list(userFilter(username));
         UsersPage usersPage = executeRequest(request);

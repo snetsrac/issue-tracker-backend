@@ -7,5 +7,6 @@ CREATE TABLE issue (
     title VARCHAR(128) NOT NULL,
     description TEXT NOT NULL,
     status issue_status NOT NULL,
-    priority issue_priority NOT NULL
+    priority issue_priority NOT NULL,
+    submitter_id VARCHAR(128)
 );

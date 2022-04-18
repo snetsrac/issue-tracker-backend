@@ -9,14 +9,14 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import org.springframework.data.domain.Sort;
 
 @JsonInclude(Include.NON_NULL)
-public class PageMetadata<T> {
+public class PageMetadata {
     private Integer size;
     private Long totalElements;
     private Integer totalPages;
     private Integer number;
     private List<String> sort;
 
-    public PageMetadata(org.springframework.data.domain.Page<T> page) {
+    public PageMetadata(@SuppressWarnings("rawtypes") org.springframework.data.domain.Page page) {
         this.size = page.getSize();
         this.totalElements = page.getTotalElements();
         this.totalPages = page.getTotalPages();
@@ -25,7 +25,7 @@ public class PageMetadata<T> {
 
     }
 
-    public PageMetadata(com.auth0.json.mgmt.Page<T> page) {
+    public PageMetadata(@SuppressWarnings("rawtypes") com.auth0.json.mgmt.Page page) {
         // If the query summary is included and valid, use it, otherwise use the list
         // size as a fallback. The summary will not be included unless .withTotals(true)
         // is added to the UserFilter.

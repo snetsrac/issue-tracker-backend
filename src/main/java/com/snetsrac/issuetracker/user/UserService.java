@@ -12,5 +12,8 @@ public interface UserService {
     public UsersPage findAll(Pageable pageable);
 
     public User findById(String id);
+
+    public Map<String, User> findByIds(Collection<String> ids);
+
     public User findByUsername(String username);
 }
