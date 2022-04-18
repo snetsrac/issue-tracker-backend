@@ -36,11 +36,24 @@ public class UserController {
     }
 
     // Single item
-    @GetMapping("/{id}")
+    
+    @GetMapping("/byId/{id}")
     @PreAuthorize("hasAuthority('read:users')")
     public UserDto getUserById(@PathVariable String id) {
         User user = userService.findById(id);
         
+        if (user == null) {
+            throw new NotFoundException("user.not-found");
+        }
+
+        return userMapper.toDto(user);
+    }
+    
+    @GetMapping("/byUsername/{username}")
+    @PreAuthorize("hasAuthority('read:users')")
+    public UserDto getUserByUsername(@PathVariable String username) {
+        User user = userService.findByUsername(username);
+
         if (user == null) {
             throw new NotFoundException("user.not-found");
         }
