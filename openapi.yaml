@@ -1,259 +1,222 @@
 openapi: 3.0.3
 info:
   title: Issue Tracker
-  description: 'Web application enabling software professionals to manage feature\
+  description:
+    'Web application enabling software professionals to manage feature\
     \ development, bug-fixing, etc.'
   version: 0.0.1-SNAPSHOT
 servers:
-- url: http://localhost:8080
+  - url: http://localhost:8080
 security:
-- OAuth2AuthCode: []
+  - OAuth2AuthCode: []
 tags:
-- name: users
-  description: Authentication and user management
-- name: issues
-  description: Represents a bug, new feature, etc.
+  - name: Users
+    description: Authentication and user management
+  - name: Issues
+    description: Represents a bug, new feature, etc.
 paths:
-  /login:
-    post:
-      tags:
-      - users
-      summary: Logs a user into the system
-      operationId: loginUser
-      requestBody:
-        $ref: '#/components/requestBodies/loginUser'
-      responses:
-        '200':
-          $ref: '#/components/responses/Tokens'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /refresh:
-    post:
-      tags:
-        - users
-      summary: Get a new access token
-      operationId: refresh
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                refreshToken:
-                  type: string
-      responses:
-        '200':
-          $ref: '#/components/responses/Tokens'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /logout:
-    post:
-      tags:
-      - users
-      summary: Logs the user out
-      operationId: logoutUser
-      responses:
-        '204':
-          $ref: '#/components/responses/NoContent'
-  /register:
-    post:
-      tags:
-      - users
-      summary: Register a new user
-      operationId: registerUser
-      requestBody:
-        $ref: '#/components/requestBodies/registerUser'
-      responses:
-        '201':
-          $ref: '#/components/responses/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-  /user:
-    get:
-      tags:
-      - users
-      summary: Get the currently logged in user, if any
-      operationId: getCurrentUser
-      responses:
-        '200':
-          $ref: '#/components/responses/User'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
   /users:
     get:
       tags:
-      - users
+        - Users
       summary: Get a paginated list of all users
       operationId: getUsers
+      security:
+        - OAuth2AuthCode: ["read:users"]
       parameters:
-        - $ref: '#/components/parameters/page'
-        - $ref: '#/components/parameters/size'
-        - $ref: '#/components/parameters/sort'
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/size"
+        - $ref: "#/components/parameters/sort"
       responses:
-        '200':
-          $ref: '#/components/responses/UsersPage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "200":
+          $ref: "#/components/responses/UsersPage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /users/{user_id}:
+    get:
+      tags:
+        - Users
+      summary: Get a user by user id
+      operationId: getUserById
+      security:
+        - OAuth2AuthCode: ["read:users"]
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      responses:
+        "200":
+          $ref: "#/components/responses/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /users/{username}:
     get:
       tags:
-      - users
+        - Users
       summary: Get a user by username
       operationId: getUserByUsername
+      security:
+        - OAuth2AuthCode: ["read:users"]
       parameters:
-        - $ref: '#/components/parameters/username'
+        - $ref: "#/components/parameters/username"
       responses:
-        '200':
-          $ref: '#/components/responses/User'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "200":
+          $ref: "#/components/responses/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
     put:
       tags:
-      - users
+        - Users
       summary: Update a user's information
-      description: This can only be done by the logged in user.
       operationId: updateUser
+      security:
+        - OAuth2AuthCode: ["modify:users"]
       parameters:
-        - $ref: '#/components/parameters/username'
+        - $ref: "#/components/parameters/username"
       requestBody:
-        $ref: '#/components/requestBodies/updateUser'
+        $ref: "#/components/requestBodies/updateUser"
       responses:
-        '200':
-          $ref: '#/components/responses/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "200":
+          $ref: "#/components/responses/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /users/{username}/issues:
     get:
       tags:
-      - users
+        - Users
       summary: Get a paginated list of the user's submitted/assigned issues
       operationId: getUserIssues
+      security:
+        - OAuth2AuthCode: ["read:users", "read:issues"]
       parameters:
-        - $ref: '#/components/parameters/username'
-        - $ref: '#/components/parameters/page'
-        - $ref: '#/components/parameters/size'
-        - $ref: '#/components/parameters/sort'
+        - $ref: "#/components/parameters/username"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/size"
+        - $ref: "#/components/parameters/sort"
       responses:
-        '200':
-          $ref: '#/components/responses/UsersPage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "200":
+          $ref: "#/components/responses/UsersPage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /issues:
     get:
       tags:
-      - issues
+        - Issues
       summary: Get a paginated list of all issues
       operationId: getAllIssues
       security:
-        - OAuth2AuthCode: ['read:issues']
+        - OAuth2AuthCode: ["read:issues"]
       parameters:
-        - $ref: '#/components/parameters/page'
-        - $ref: '#/components/parameters/size'
-        - $ref: '#/components/parameters/sort'
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/size"
+        - $ref: "#/components/parameters/sort"
       responses:
-        '200':
-          $ref: '#/components/responses/IssuesPage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "200":
+          $ref: "#/components/responses/IssuesPage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
     post:
       tags:
-      - issues
+        - Issues
       summary: Create a new issue
       operationId: createIssue
       security:
-        - OAuth2AuthCode: ['write:issues']
+        - OAuth2AuthCode: ["submit:issues"]
       requestBody:
-        $ref: '#/components/requestBodies/createIssue'
+        $ref: "#/components/requestBodies/createIssue"
       responses:
-        '201':
-          $ref: '#/components/responses/Issue'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "201":
+          $ref: "#/components/responses/Issue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /issues/{id}:
     get:
       tags:
-      - issues
+        - Issues
       summary: Get an issue by id
       operationId: getIssueById
       security:
-        - OAuth2AuthCode: ['read:issues']
+        - OAuth2AuthCode: ["read:issues"]
       parameters:
-        - $ref: '#/components/parameters/id'
+        - $ref: "#/components/parameters/id"
       responses:
-        '200':
-          $ref: '#/components/responses/Issue'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "200":
+          $ref: "#/components/responses/Issue"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
     put:
       tags:
-      - issues
+        - Issues
       summary: Update an existing issue
       operationId: updateIssue
       security:
-        - OAuth2AuthCode: ['write:issues']
+        - OAuth2AuthCode: ["submit:issues"]
+        - OAuth2AuthCode: ["modify:issues"]
       parameters:
-        - $ref: '#/components/parameters/id'
+        - $ref: "#/components/parameters/id"
       requestBody:
-        $ref: '#/components/requestBodies/updateIssue'
+        $ref: "#/components/requestBodies/updateIssue"
       responses:
-        '200':
-          $ref: '#/components/responses/Issue'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "200":
+          $ref: "#/components/responses/Issue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
     delete:
       tags:
-      - issues
+        - Issues
       summary: Delete an existing issue
       operationId: deleteIssue
       security:
-        - OAuth2AuthCode: ['delete:issues']
+        - OAuth2AuthCode: ["delete:issues"]
       parameters:
-        - $ref: '#/components/parameters/id'
+        - $ref: "#/components/parameters/id"
       responses:
-        '204':
-          $ref: '#/components/responses/NoContent'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 components:
   schemas:
     Id:
@@ -261,48 +224,53 @@ components:
       format: int32
     User:
       required:
-      - displayName
-      - email
-      - imageHref
-      - username
-      type: object
-      properties:
-        username:
-          type: string
-        displayName:
-          type: string
-        email:
-          type: string
-        imageHref:
-          type: string
-    Issue:
-      required:
-      - createdAt
-      - description
-      - id
-      - priority
-      - status
-      - submitter
-      - title
-      - updatedAt
+        - id
+        - email
+        - name
+        - username
+        - picture
       type: object
       properties:
         id:
-          $ref: '#/components/schemas/Id'
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        nickname:
+          type: string
+        username:
+          type: string
+        picture:
+          type: string
+    Issue:
+      required:
+        - createdAt
+        - description
+        - id
+        - priority
+        - status
+        - submitter
+        - title
+        - updatedAt
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
         title:
           type: string
         description:
           type: string
         status:
-          $ref: '#/components/schemas/IssueStatus'
+          $ref: "#/components/schemas/IssueStatus"
         priority:
-          $ref: '#/components/schemas/IssuePriority'
+          $ref: "#/components/schemas/IssuePriority"
         submitter:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
         assignees:
           type: array
           items:
-            $ref: '#/components/schemas/User'
+            $ref: "#/components/schemas/User"
         createdAt:
           type: string
           format: date-time
@@ -312,22 +280,22 @@ components:
     IssueStatus:
       type: string
       enum:
-      - open
-      - in progress
-      - more info needed
-      - resolved
+        - open
+        - in progress
+        - more info needed
+        - resolved
     IssuePriority:
       type: string
       enum:
-      - high
-      - medium
-      - low
+        - high
+        - medium
+        - low
     PageMetadata:
       required:
-      - number
-      - size
-      - totalElements
-      - totalPages
+        - number
+        - size
+        - totalElements
+        - totalPages
       type: object
       properties:
         size:
@@ -344,10 +312,10 @@ components:
           format: int32
     ErrorResponse:
       required:
-      - message
-      - status
-      - timestamp
-      - title
+        - message
+        - status
+        - timestamp
+        - title
       type: object
       properties:
         status:
@@ -384,7 +352,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/User'
+            $ref: "#/components/schemas/User"
     UsersPage:
       description: Return a page of users
       content:
@@ -395,15 +363,15 @@ components:
               content:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
+                  $ref: "#/components/schemas/User"
               page:
-                $ref: '#/components/schemas/PageMetadata'
+                $ref: "#/components/schemas/PageMetadata"
     Issue:
       description: Return an issue
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Issue'
+            $ref: "#/components/schemas/Issue"
     IssuesPage:
       description: Return a page of issues
       content:
@@ -414,9 +382,9 @@ components:
               content:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Issue'
+                  $ref: "#/components/schemas/Issue"
               page:
-                $ref: '#/components/schemas/PageMetadata'
+                $ref: "#/components/schemas/PageMetadata"
     NoContent:
       description: No Content
       content: {}
@@ -425,7 +393,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
     Unauthorized:
       description: Unauthorized
     Forbidden:
@@ -435,7 +403,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
   parameters:
     id:
       name: id
@@ -444,7 +412,15 @@ components:
       style: simple
       explode: false
       schema:
-        $ref: '#/components/schemas/Id'
+        $ref: "#/components/schemas/Id"
+    userId:
+      name: user_id
+      in: path
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
     username:
       name: username
       in: path
@@ -481,7 +457,8 @@ components:
     sort:
       name: sort
       in: query
-      description: 'Properties to sort by, with optional asc/desc and ignorecase specifiers.\
+      description:
+        'Properties to sort by, with optional asc/desc and ignorecase specifiers.\
         \ Defaults to case-sensitive ascending. Must match /^\\w+(,asc|,desc)?(,ignorecase)?$/.'
       required: false
       style: form
@@ -495,28 +472,28 @@ components:
         title:
           summary: Sort by title
           value:
-          - title
+            - title
         titleDescending:
           summary: Sort by title, descending
           value:
-          - 'title,desc'
+            - "title,desc"
         description:
           summary: Sort by description, case-insensitive
           value:
-          - 'description,ignorecase'
+            - "description,ignorecase"
         titleDescription:
           summary: Sort by priority, then title
           value:
-          - priority
-          - title
+            - priority
+            - title
   requestBodies:
     loginUser:
       content:
         application/json:
           schema:
             required:
-            - password
-            - username
+              - password
+              - username
             type: object
             properties:
               username:
@@ -530,38 +507,38 @@ components:
         application/json:
           schema:
             allOf:
-            - $ref: '#/components/schemas/User'
-            - required:
-              - password
-              type: object
-              properties:
-                password:
-                  type: string
-                  format: password
+              - $ref: "#/components/schemas/User"
+              - required:
+                  - password
+                type: object
+                properties:
+                  password:
+                    type: string
+                    format: password
       required: true
     updateUser:
       content:
         application/json:
           schema:
             allOf:
-            - $ref: '#/components/schemas/User'
-            - type: object
-              properties:
-                oldPassword:
-                  type: string
-                  format: password
-                newPassword:
-                  type: string
-                  format: password
+              - $ref: "#/components/schemas/User"
+              - type: object
+                properties:
+                  oldPassword:
+                    type: string
+                    format: password
+                  newPassword:
+                    type: string
+                    format: password
       required: true
     createIssue:
       content:
         application/json:
           schema:
             required:
-            - description
-            - priority
-            - title
+              - description
+              - priority
+              - title
             type: object
             properties:
               title:
@@ -569,18 +546,18 @@ components:
               description:
                 type: string
               priority:
-                $ref: '#/components/schemas/IssuePriority'
+                $ref: "#/components/schemas/IssuePriority"
       required: true
     updateIssue:
       content:
         application/json:
           schema:
             required:
-            - assigneeIds
-            - description
-            - priority
-            - status
-            - title
+              - assigneeIds
+              - description
+              - priority
+              - status
+              - title
             type: object
             properties:
               title:
@@ -588,9 +565,9 @@ components:
               description:
                 type: string
               status:
-                $ref: '#/components/schemas/IssueStatus'
+                $ref: "#/components/schemas/IssueStatus"
               priority:
-                $ref: '#/components/schemas/IssuePriority'
+                $ref: "#/components/schemas/IssuePriority"
               assigneeIds:
                 type: array
                 items:
@@ -607,5 +584,9 @@ components:
           tokenUrl: https://issue-tracker-chriscarstens.us.auth0.com/oauth/token
           scopes:
             read:issues: Read issue information
-            write:issues: Create and update issues
+            submit:issues: Submit and modify own issues
+            modify:issues: Modify assigned issues
+            assign:issues: Assign users to issues
             delete:issues: Delete issues
+            read:users: Read other users' information
+            modify:users: Modify other users' information
