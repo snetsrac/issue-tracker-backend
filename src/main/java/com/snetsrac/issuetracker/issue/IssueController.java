@@ -136,6 +136,7 @@ public class IssueController {
 
         for (Issue issue : page.getContent()) {
             userIds.add(issue.getSubmitterId());
+            userIds.addAll(issue.getAssigneeIds());
         }
 
         return userIds;
@@ -145,6 +146,7 @@ public class IssueController {
         Set<String> userIds = new HashSet<>();
 
         userIds.add(issue.getSubmitterId());
+        userIds.addAll(issue.getAssigneeIds());
 
         return userIds;
     }

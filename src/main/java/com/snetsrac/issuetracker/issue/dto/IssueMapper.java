@@ -3,6 +3,7 @@ package com.snetsrac.issuetracker.issue.dto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -40,7 +41,7 @@ public class IssueMapper {
         if (page == null || userMap == null) {
             return null;
         }
-        
+
         PageDto<IssueDto> pagedDto = new PageDto<>();
         List<IssueDto> issueDtos = new ArrayList<>();
 
@@ -84,6 +85,11 @@ public class IssueMapper {
         dto.setStatus(issue.getStatus());
         dto.setPriority(issue.getPriority());
         dto.setSubmitter(userMapper.toDto(userMap.get(issue.getSubmitterId())));
+        dto.setAssignees(
+                issue.getAssigneeIds()
+                        .stream()
+                        .map(id -> userMapper.toDto(userMap.get(id)))
+                        .collect(Collectors.toList()));
 
         return dto;
     }

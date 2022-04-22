@@ -10,3 +10,9 @@ CREATE TABLE issue (
     priority issue_priority NOT NULL,
     submitter_id VARCHAR(128)
 );
+
+CREATE TABLE issue_assignee (
+    issue_id INTEGER REFERENCES issue (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    user_id VARCHAR(128),
+    PRIMARY KEY (issue_id, user_id)
+);

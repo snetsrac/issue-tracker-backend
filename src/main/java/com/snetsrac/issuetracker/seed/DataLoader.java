@@ -1,8 +1,10 @@
 package com.snetsrac.issuetracker.seed;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import com.github.javafaker.Faker;
 import com.snetsrac.issuetracker.issue.Issue;
@@ -44,6 +46,7 @@ public class DataLoader implements CommandLineRunner {
     private static Logger logger = Logger.getLogger(DataLoader.class);
     private static Random random = new Random();
     private String[] submitterIds;
+    private String[] assigneeIds;
 
     @Override
     public void run(String... args) throws Exception {
@@ -51,6 +54,7 @@ public class DataLoader implements CommandLineRunner {
         logger.info("Running DataLoader...");
         
         submitterIds = new String[] { DEMO_SUBMITTER_ID, DEMO_DEVELOPER_ID, DEMO_MANAGER_ID, DEMO_ADMIN_ID };
+        assigneeIds = new String[] { DEMO_DEVELOPER_ID, DEMO_MANAGER_ID, DEMO_ADMIN_ID };
         insertIssues();
 
         logger.info("Finished loading data.");
@@ -61,13 +65,14 @@ public class DataLoader implements CommandLineRunner {
             List<Issue> issues = new ArrayList<>();
 
             for (int i = 0; i < NUM_ISSUES; i++) {
-                Issue issue = new Issue(
-                        faker.lorem().sentence(),
-                        faker.lorem().paragraph(i % 10 + 10),
-                        getRandomEnumValue(IssueStatus.class),
-                        getRandomEnumValue(IssuePriority.class),
-                        getRandomSubmitterId()
-                );
+                Issue issue = new Issue();
+
+                issue.setTitle(faker.lorem().sentence());
+                issue.setDescription(String.join("\n", faker.lorem().paragraphs(random.nextInt(4) + 1)));
+                issue.setStatus(getRandomEnumValue(IssueStatus.class));
+                issue.setPriority(getRandomEnumValue(IssuePriority.class));
+                issue.setSubmitterId(getRandomSubmitterId());
+                issue.setAssigneeIds(getRandomAssigneeIds());
 
                 issues.add(issue);
             }
@@ -85,5 +90,16 @@ public class DataLoader implements CommandLineRunner {
     private String getRandomSubmitterId() {
         int i = random.nextInt(submitterIds.length);
         return submitterIds[i];
+    }
+
+    private Set<String> getRandomAssigneeIds() {
+        int n = random.nextInt(assigneeIds.length + 1);
+        Set<String> ids = new HashSet<>();
+
+        for (int i = 0; i < n; i++) {
+            ids.add(assigneeIds[i]);
+        }
+
+        return ids;
     }
 }

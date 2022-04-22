@@ -1,11 +1,15 @@
 package com.snetsrac.issuetracker.issue;
 
-import java.util.Objects;
+import java.util.Set;
 
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
 import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
@@ -37,16 +41,10 @@ public class Issue extends BaseEntity {
     @Column(name = "submitter_id")
     private String submitterId;
 
-    public Issue() {
-    }
-
-    public Issue(String title, String description, IssueStatus status, IssuePriority priority, String submitterId) {
-        this.title = title;
-        this.description = description;
-        this.status = status;
-        this.priority = priority;
-        this.submitterId = submitterId;
-    }
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "issue_assignee", joinColumns = @JoinColumn(name = "issue_id"))
+    @Column(name = "user_id")
+    private Set<String> assigneeIds;
 
     public String getTitle() {
         return title;
@@ -88,27 +86,11 @@ public class Issue extends BaseEntity {
         this.submitterId = submitterId;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.getId(), this.title, this.description, this.status, this.priority, this.submitterId);
+    public Set<String> getAssigneeIds() {
+        return assigneeIds;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if ((obj instanceof Issue))
-            return false;
-
-        Issue issue = (Issue) obj;
-        return Objects.equals(this.getId(), issue.getId()) && Objects.equals(this.title, issue.title) &&
-                Objects.equals(this.description, issue.description) && Objects.equals(this.status, issue.status) &&
-                Objects.equals(this.priority, issue.priority) && Objects.equals(this.submitterId, issue.submitterId);
-    }
-
-    @Override
-    public String toString() {
-        return "Issue [id=" + this.getId() + ", title=" + title + ", description=" + description + ", status=" +
-                status + ", priority=" + priority + ", submitterId=" + submitterId + "]";
+    public void setAssigneeIds(Set<String> assigneeIds) {
+        this.assigneeIds = assigneeIds;
     }
 }
