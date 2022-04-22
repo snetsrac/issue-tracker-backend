@@ -90,6 +90,7 @@ public class IssueMapper {
                         .stream()
                         .map(id -> userMapper.toDto(userMap.get(id)))
                         .collect(Collectors.toList()));
+        dto.setCreatedAt(issue.getCreatedAt().toString());
 
         return dto;
     }

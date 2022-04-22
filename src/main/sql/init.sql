@@ -8,7 +8,8 @@ CREATE TABLE issue (
     description TEXT NOT NULL,
     status issue_status NOT NULL,
     priority issue_priority NOT NULL,
-    submitter_id VARCHAR(128)
+    submitter_id VARCHAR(128),
+    created_at TIMESTAMP(0) WITH TIME ZONE NOT NULL
 );
 
 CREATE TABLE issue_assignee (

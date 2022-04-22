@@ -1,11 +1,13 @@
 package com.snetsrac.issuetracker.issue;
 
+import java.time.Instant;
 import java.util.Set;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
@@ -17,8 +19,11 @@ import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
 import com.snetsrac.issuetracker.model.BaseEntity;
 
 import org.hibernate.annotations.Type;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "issue")
 public class Issue extends BaseEntity {
 
@@ -45,6 +50,9 @@ public class Issue extends BaseEntity {
     @CollectionTable(name = "issue_assignee", joinColumns = @JoinColumn(name = "issue_id"))
     @Column(name = "user_id")
     private Set<String> assigneeIds;
+
+    @CreatedDate
+    private Instant createdAt;
 
     public String getTitle() {
         return title;
@@ -93,4 +101,13 @@ public class Issue extends BaseEntity {
     public void setAssigneeIds(Set<String> assigneeIds) {
         this.assigneeIds = assigneeIds;
     }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
 }
