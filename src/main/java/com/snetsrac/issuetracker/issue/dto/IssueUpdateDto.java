@@ -1,5 +1,8 @@
 package com.snetsrac.issuetracker.issue.dto;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.validation.constraints.NotBlank;
 
 import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
@@ -7,6 +10,7 @@ import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
 import com.snetsrac.issuetracker.model.EnumString;
 
 public class IssueUpdateDto {
+
     @NotBlank(message = "{issue.title.required}")
     private String title;
 
@@ -17,9 +21,11 @@ public class IssueUpdateDto {
     @EnumString(enumClass = IssueStatus.class, message = "{issue.status.valid}")
     private String status;
 
-    @NotBlank(message = "{issue.priority.required")
+    @NotBlank(message = "{issue.priority.required}")
     @EnumString(enumClass = IssuePriority.class, message = "{issue.priority.valid}")
     private String priority;
+
+    private Set<String> assigneeIds;
 
     public String getTitle() {
         return title;
@@ -52,4 +58,17 @@ public class IssueUpdateDto {
     public void setPriority(String priority) {
         this.priority = priority;
     }
+
+    public Set<String> getAssigneeIds() {
+        return assigneeIds;
+    }
+
+    public void setAssigneeIds(Set<String> assigneeIds) {
+        if (assigneeIds == null) {
+            this.assigneeIds = new HashSet<>();
+        } else {
+            this.assigneeIds = assigneeIds;
+        }
+    }
+
 }

@@ -12,7 +12,7 @@ public class EnumStringValidator implements ConstraintValidator<EnumString, Stri
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        return values.contains(value);
+        return values.contains(value.replaceAll(" ", "_").toUpperCase());
     }
 
     @Override
@@ -25,7 +25,7 @@ public class EnumStringValidator implements ConstraintValidator<EnumString, Stri
 
         for (@SuppressWarnings("rawtypes")
         Enum enumValue : enumValues) {
-            values.add(enumValue.toString().toLowerCase());
+            values.add(enumValue.toString());
         }
     }
 }

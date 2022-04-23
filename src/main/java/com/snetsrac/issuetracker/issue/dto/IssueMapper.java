@@ -70,8 +70,8 @@ public class IssueMapper {
     public Issue issueUpdateDtoOntoIssue(@Valid IssueUpdateDto dto, Issue issue) {
         issue.setTitle(dto.getTitle());
         issue.setDescription(dto.getDescription());
-        issue.setStatus(IssueStatus.valueOf(dto.getStatus().toUpperCase()));
-        issue.setPriority(IssuePriority.valueOf(dto.getPriority().toUpperCase()));
+        issue.setStatus(IssueStatus.valueOf(dto.getStatus().replaceAll(" ", "_").toUpperCase()));
+        issue.setPriority(IssuePriority.valueOf(dto.getPriority().replaceAll(" ", "_").toUpperCase()));
 
         return issue;
     }
