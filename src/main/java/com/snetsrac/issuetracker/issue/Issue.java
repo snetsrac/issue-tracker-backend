@@ -73,6 +73,16 @@ public class Issue extends BaseEntity {
     @CreatedDate
     private Instant createdAt;
 
+    public Issue() {
+    }
+    
+    public Issue(String title, String description, Priority priority, String submitterId) {
+        this.title = title;
+        this.description = description;
+        this.priority = priority;
+        this.submitterId = submitterId;
+    }
+
     public String getTitle() {
         return title;
     }

@@ -3,6 +3,7 @@ package com.snetsrac.issuetracker.issue;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.validation.Valid;
@@ -53,26 +54,31 @@ public class IssueController {
     @GetMapping
     @PreAuthorize("hasAuthority('read:issues')")
     public PageDto<IssueDto> getIssues(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
+
+        // Get a page of issues from the database
         Page<Issue> page = issueService.findAll(pageable);
-        Set<String> userIds = getUserIds(page);
-        Map<String, User> userMap = userService.findByIds(userIds);
-        PageDto<IssueDto> dto = issueMapper.toPagedDto(page, userMap);
-        return dto;
+
+        // Build a dto and return 200
+        Map<String, User> userMap = userService.findByIds(getUserIds(page));
+        return issueMapper.toPagedDto(page, userMap);
     }
 
     // Single item
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('read:issues')")
     public IssueDto getIssueById(@PathVariable String id) {
-        Issue issue = issueService.findById(convertPathVariableToInt(id));
         
-        if (issue == null) {
+        // Get the issue from the database
+        Optional<Issue> issue = issueService.findById(convertPathVariableToInt(id));
+        
+        // If no issue was found, return 404
+        if (!issue.isPresent()) {
             throw new NotFoundException("issue.not-found");
         }
 
-        Set<String> userIds = getUserIds(issue);
-        Map<String, User> userMap = userService.findByIds(userIds);
-        return issueMapper.toDto(issue, userMap);
+        // Build a dto and return 200
+        Map<String, User> userMap = userService.findByIds(getUserIds(issue.get()));
+        return issueMapper.toDto(issue.get(), userMap);
     }
 
     @PostMapping
@@ -90,29 +96,38 @@ public class IssueController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('submit:issues', 'modify:issues')")
     public IssueDto putIssue(@PathVariable String id, @RequestBody @Valid IssueUpdateDto dto) {
-        Issue issue = issueService.findById(convertPathVariableToInt(id));
+
+        // Get the issue from the database
+        Optional<Issue> existingIssue = issueService.findById(convertPathVariableToInt(id));
         
-        if (issue == null) {
+        // If no issue was found, return 404
+        if (!existingIssue.isPresent()) {
             throw new NotFoundException("issue.not-found");
         }
 
-        issue = issueService.save(issueMapper.issueUpdateDtoOntoIssue(dto, issue));
+        // Perform the updates and save to the database
+        Issue updatedIssue = issueMapper.issueUpdateDtoOntoIssue(dto, existingIssue.get());
+        updatedIssue = issueService.save(updatedIssue);
 
-        Set<String> userIds = getUserIds(issue);
-        Map<String, User> userMap = userService.findByIds(userIds);
-        return issueMapper.toDto(issue, userMap);
+        // Build a dto and return 200
+        Map<String, User> userMap = userService.findByIds(getUserIds(updatedIssue));
+        return issueMapper.toDto(updatedIssue, userMap);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('delete:issues')")
     public ResponseEntity<Object> deleteIssue(@PathVariable String id) {
+
+        // First, check that the issue exists
         int idInt = convertPathVariableToInt(id);
-        Issue issue = issueService.findById(idInt);
+        Optional<Issue> issue = issueService.findById(idInt);
         
-        if (issue == null) {
+        // If it doesn't, return 404
+        if (!issue.isPresent()) {
             throw new NotFoundException("issue.not-found");
         }
 
+        // Delete the issue and return 204
         issueService.deleteById(idInt);
         return ResponseEntity.noContent().build();
     }
