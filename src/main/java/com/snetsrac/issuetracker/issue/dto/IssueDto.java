@@ -2,8 +2,8 @@ package com.snetsrac.issuetracker.issue.dto;
 
 import java.util.List;
 
-import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
-import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
+import com.snetsrac.issuetracker.issue.Issue.Priority;
+import com.snetsrac.issuetracker.issue.Issue.Status;
 import com.snetsrac.issuetracker.user.dto.UserDto;
 
 public class IssueDto {
@@ -11,8 +11,8 @@ public class IssueDto {
     private int id;
     private String title;
     private String description;
-    private IssueStatus status;
-    private IssuePriority priority;
+    private Status status;
+    private Priority priority;
     private UserDto submitter;
     private List<UserDto> assignees;
     private String createdAt;
@@ -42,19 +42,19 @@ public class IssueDto {
         this.description = description;
     }
 
-    public IssueStatus getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(IssueStatus status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 
-    public IssuePriority getPriority() {
+    public Priority getPriority() {
         return priority;
     }
 
-    public void setPriority(IssuePriority priority) {
+    public void setPriority(Priority priority) {
         this.priority = priority;
     }
 

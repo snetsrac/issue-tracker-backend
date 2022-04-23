@@ -14,8 +14,7 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
-import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
-import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.snetsrac.issuetracker.model.BaseEntity;
 
 import org.hibernate.annotations.Type;
@@ -26,6 +25,26 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "issue")
 public class Issue extends BaseEntity {
+    
+    public enum Status {
+        @JsonProperty("open")
+        OPEN,
+        @JsonProperty("in progress")
+        IN_PROGRESS,
+        @JsonProperty("more info needed")
+        MORE_INFO_NEEDED,
+        @JsonProperty("resolved")
+        RESOLVED
+    }
+    
+    public enum Priority {
+        @JsonProperty("high")
+        HIGH,
+        @JsonProperty("medium")
+        MEDIUM,
+        @JsonProperty("low")
+        LOW
+    }
 
     @Column(name = "title")
     private String title;
@@ -36,12 +55,12 @@ public class Issue extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Type(type = "postgresql_enum")
     @Column(name = "status")
-    private IssueStatus status;
+    private Status status;
 
     @Enumerated(EnumType.STRING)
     @Type(type = "postgresql_enum")
     @Column(name = "priority")
-    private IssuePriority priority;
+    private Priority priority;
 
     @Column(name = "submitter_id")
     private String submitterId;
@@ -70,19 +89,19 @@ public class Issue extends BaseEntity {
         this.description = description;
     }
 
-    public IssueStatus getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(IssueStatus status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 
-    public IssuePriority getPriority() {
+    public Priority getPriority() {
         return priority;
     }
 
-    public void setPriority(IssuePriority priority) {
+    public void setPriority(Priority priority) {
         this.priority = priority;
     }
 

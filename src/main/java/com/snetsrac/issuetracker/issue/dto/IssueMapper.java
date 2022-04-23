@@ -9,8 +9,8 @@ import javax.validation.Valid;
 
 import com.auth0.json.mgmt.users.User;
 import com.snetsrac.issuetracker.issue.Issue;
-import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
-import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
+import com.snetsrac.issuetracker.issue.Issue.Priority;
+import com.snetsrac.issuetracker.issue.Issue.Status;
 import com.snetsrac.issuetracker.model.PageMetadata;
 import com.snetsrac.issuetracker.model.PageDto;
 import com.snetsrac.issuetracker.user.UserService;
@@ -60,8 +60,8 @@ public class IssueMapper {
 
         issue.setTitle(dto.getTitle());
         issue.setDescription(dto.getDescription());
-        issue.setStatus(IssueStatus.OPEN);
-        issue.setPriority(IssuePriority.valueOf(dto.getPriority().toUpperCase()));
+        issue.setStatus(Status.OPEN);
+        issue.setPriority(Priority.valueOf(dto.getPriority().toUpperCase()));
         issue.setSubmitterId(submitterId);
 
         return issue;
@@ -70,8 +70,8 @@ public class IssueMapper {
     public Issue issueUpdateDtoOntoIssue(@Valid IssueUpdateDto dto, Issue issue) {
         issue.setTitle(dto.getTitle());
         issue.setDescription(dto.getDescription());
-        issue.setStatus(IssueStatus.valueOf(dto.getStatus().replaceAll(" ", "_").toUpperCase()));
-        issue.setPriority(IssuePriority.valueOf(dto.getPriority().replaceAll(" ", "_").toUpperCase()));
+        issue.setStatus(Status.valueOf(dto.getStatus().replaceAll(" ", "_").toUpperCase()));
+        issue.setPriority(Priority.valueOf(dto.getPriority().replaceAll(" ", "_").toUpperCase()));
 
         return issue;
     }

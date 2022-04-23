@@ -9,8 +9,8 @@ import java.util.Set;
 import com.github.javafaker.Faker;
 import com.snetsrac.issuetracker.issue.Issue;
 import com.snetsrac.issuetracker.issue.IssueRepository;
-import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
-import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
+import com.snetsrac.issuetracker.issue.Issue.Priority;
+import com.snetsrac.issuetracker.issue.Issue.Status;
 
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,8 +69,8 @@ public class DataLoader implements CommandLineRunner {
 
                 issue.setTitle(faker.lorem().sentence());
                 issue.setDescription(String.join("\n", faker.lorem().paragraphs(random.nextInt(4) + 1)));
-                issue.setStatus(getRandomEnumValue(IssueStatus.class));
-                issue.setPriority(getRandomEnumValue(IssuePriority.class));
+                issue.setStatus(getRandomEnumValue(Status.class));
+                issue.setPriority(getRandomEnumValue(Priority.class));
                 issue.setSubmitterId(getRandomSubmitterId());
                 issue.setAssigneeIds(getRandomAssigneeIds());
 

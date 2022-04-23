@@ -5,8 +5,8 @@ import java.util.Set;
 
 import javax.validation.constraints.NotBlank;
 
-import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
-import com.snetsrac.issuetracker.issue.enumerator.IssueStatus;
+import com.snetsrac.issuetracker.issue.Issue.Priority;
+import com.snetsrac.issuetracker.issue.Issue.Status;
 import com.snetsrac.issuetracker.model.EnumString;
 
 public class IssueUpdateDto {
@@ -18,11 +18,11 @@ public class IssueUpdateDto {
     private String description;
 
     @NotBlank(message = "{issue.status.required}")
-    @EnumString(enumClass = IssueStatus.class, message = "{issue.status.valid}")
+    @EnumString(enumClass = Status.class, message = "{issue.status.valid}")
     private String status;
 
     @NotBlank(message = "{issue.priority.required}")
-    @EnumString(enumClass = IssuePriority.class, message = "{issue.priority.valid}")
+    @EnumString(enumClass = Priority.class, message = "{issue.priority.valid}")
     private String priority;
 
     private Set<String> assigneeIds;

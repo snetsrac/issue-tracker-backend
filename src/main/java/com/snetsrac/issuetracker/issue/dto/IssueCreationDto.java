@@ -2,7 +2,7 @@ package com.snetsrac.issuetracker.issue.dto;
 
 import javax.validation.constraints.NotBlank;
 
-import com.snetsrac.issuetracker.issue.enumerator.IssuePriority;
+import com.snetsrac.issuetracker.issue.Issue.Priority;
 import com.snetsrac.issuetracker.model.EnumString;
 
 public class IssueCreationDto {
@@ -13,7 +13,7 @@ public class IssueCreationDto {
     private String description;
 
     @NotBlank(message = "{issue.priority.required}")
-    @EnumString(enumClass = IssuePriority.class, message = "{issue.priority.valid}")
+    @EnumString(enumClass = Priority.class, message = "{issue.priority.valid}")
     private String priority;
 
     public String getTitle() {
