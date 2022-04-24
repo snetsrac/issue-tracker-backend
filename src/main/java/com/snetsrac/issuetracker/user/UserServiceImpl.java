@@ -1,8 +1,9 @@
 package com.snetsrac.issuetracker.user;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.auth0.client.mgmt.ManagementAPI;
@@ -14,102 +15,169 @@ import com.auth0.net.Request;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
+/**
+ * Provides read and update functionality for users managed by Auth0.
+ */
 @Service
 public class UserServiceImpl implements UserService {
 
-    Logger log = LoggerFactory.getLogger(getClass());
+    static final String USER_FIELDS = "user_id,email,username,name,picture,app_metadata";
 
-    private static final String USER_FIELDS = "user_id,email,username,name,picture,app_metadata";
+    private final ManagementAPI managementAPI;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    private ManagementAPI managementAPI;
-
-    @Override
-    public UsersPage findAll(Pageable pageable) {
-        Request<UsersPage> request = managementAPI.users().list(userFilter(pageable));
-        return executeRequest(request);
+    public UserServiceImpl(ManagementAPI managementAPI) {
+        this.managementAPI = managementAPI;
     }
 
+    /**
+     * Returns a page of users from the Auth0 {@link ManagementAPI}. If the API call
+     * throws {@link Auth0Exception}, logs the reason and returns an empty page.
+     * 
+     * @param pageNumber    the 0-indexed page number to return
+     * @param amountPerPage the number of users per page
+     * @param order         the field to sort by
+     * @return a page of users
+     * @throws IllegalArgumentException if order is null
+     */
     @Override
-    public User findById(String id) {
-        Request<User> request = managementAPI.users().get(id, userFilter());
-        return executeRequest(request);
-    }
+    public UsersPage findAll(int pageNumber, int amountPerPage, Order order) {
 
-    @Override
-    public Map<String, User> findByIds(Collection<String> ids) {
-        Request<UsersPage> request = managementAPI.users().list(userFilter(ids));
-        UsersPage usersPage = executeRequest(request);
-        Map<String, User> userMap = new HashMap<>();
-
-        if (usersPage != null) {
-            usersPage.getItems().forEach(user -> {
-                userMap.put(user.getId(), user);
-            });
+        if (order == null) {
+            throw new IllegalArgumentException("order must not be null");
         }
 
-        return userMap;
+        // Build user filter
+        UserFilter userFilter = userFilterWithFields()
+                .withPage(pageNumber, amountPerPage)
+                .withSort(order.getProperty() + ":" + (order.isAscending() ? "1" : "-1"))
+                .withTotals(true);
+
+        // Build request
+        Request<UsersPage> request = managementAPI.users().list(userFilter);
+
+        // Execute the request
+        try {
+            return request.execute();
+        } catch (Auth0Exception e) {
+            log.info(e.getMessage(), e);
+            return new UsersPage(List.of());
+        }
     }
 
+    /**
+     * Returns a set of users with the given user ids from the Auth0
+     * {@link ManagementAPI}. If the API call throws {@link Auth0Exception}, logs
+     * the reason and returns an empty page.
+     * 
+     * @param ids the user ids to fetch
+     * @return a set of users with the given ids
+     * @throws IllegalArgumentException if ids is null
+     */
     @Override
-    public User findByUsername(String username) {
-        Request<UsersPage> request = managementAPI.users().list(userFilter(username));
-        UsersPage usersPage = executeRequest(request);
-        
-        if (usersPage != null) {
-            return usersPage.getItems().get(0);
+    public Set<User> findByIds(Collection<String> ids) {
+
+        if (ids == null) {
+            throw new IllegalArgumentException("ids must not be null");
         }
 
-        return null;
+        // Build the user filter
+        UserFilter userFilter = userFilterWithFields()
+                .withFields(USER_FIELDS, true)
+                .withQuery(collectionToQuery(ids));
+
+        // Build the request
+        Request<UsersPage> request = managementAPI.users().list(userFilter);
+
+        // Execute the request
+        try {
+            return Set.copyOf(request.execute().getItems());
+        } catch (Auth0Exception e) {
+            log.info(e.getMessage(), e);
+            return Set.of();
+        }
     }
 
-    private String pageableSortToAuth0SortString(Sort sort) {
-        return String.join(",", sort.map(order -> {
-            String direction = order.getDirection() == Direction.DESC ? "-1" : "1";
-            return order.getProperty() + ":" + direction;
-        }));
+    /**
+     * Returns the user with the given id from the Auth0 {@link ManagementAPI}
+     * if it exists. If the API call throws {@link Auth0Exception}, logs the reason
+     * and returns an empty {@code Optional}.
+     * 
+     * @param id the user id to fetch
+     * @return the user with the given id, or empty {@code Optional} if not found
+     * @throws IllegalArgumentException if id is null or empty
+     */
+    @Override
+    public Optional<User> findById(String id) {
+
+        if (id == null || id.length() == 0) {
+            throw new IllegalArgumentException("id must be a non-empty string");
+        }
+
+        // Build the request
+        Request<User> request = managementAPI.users().get(id, userFilterWithFields());
+
+        // Execute the request
+        try {
+            return Optional.ofNullable(request.execute());
+        } catch (Auth0Exception e) {
+            log.info(e.getMessage(), e);
+            return Optional.empty();
+        }
     }
 
-    private UserFilter userFilter() {
+    /**
+     * Returns the user with the given username from the Auth0 {@link ManagementAPI}
+     * if it exists. If the API call throws {@link Auth0Exception}, logs the reason
+     * and returns an empty {@code Optional}.
+     * 
+     * @param username the user username to fetch
+     * @return the user with the given username, or empty {@code Optional} if not
+     *         found
+     * @throws IllegalArgumentException if username is null or empty
+     */
+    @Override
+    public Optional<User> findByUsername(String username) {
+
+        if (username == null || username.length() == 0) {
+            throw new IllegalArgumentException("id must be a non-empty string");
+        }
+
+        // Build the user filter
+        UserFilter userFilter = userFilterWithFields()
+                .withQuery("app_metadata.username:" + username);
+
+        // Build the request
+        Request<UsersPage> request = managementAPI.users().list(userFilter);
+
+        // Execute the request
+        try {
+            UsersPage usersPage = request.execute();
+
+            // We are enforcing unique usernames as a business rule, so if this assertion
+            // fails then we need to look into that
+            assert (usersPage.getItems().size() <= 1);
+
+            if (usersPage.getItems().size() == 1) {
+                return Optional.of(usersPage.getItems().get(0));
+            } else {
+                return Optional.empty();
+            }
+        } catch (Auth0Exception e) {
+            log.info(e.getMessage(), e);
+            return Optional.empty();
+        }
+    }
+
+    private UserFilter userFilterWithFields() {
         return new UserFilter().withFields(USER_FIELDS, true);
     }
 
-    private UserFilter userFilter(Pageable pageable) {
-        return new UserFilter()
-                .withFields(USER_FIELDS, true)
-                .withPage(pageable.getPageNumber(), pageable.getPageSize())
-                .withSort(pageableSortToAuth0SortString(pageable.getSort()))
-                .withTotals(true);
-    }
-
-    private UserFilter userFilter(Collection<String> ids) {
-        String query = String.join(" or ", ids.stream().map(id -> "user_id:" + id).collect(Collectors.toList()));
-
-        return new UserFilter()
-                .withFields(USER_FIELDS, true)
-                .withQuery(query);
-    }
-
-    private UserFilter userFilter(String username) {
-        String query = "app_metadata.username:" + username;
-
-        return new UserFilter()
-                .withFields(USER_FIELDS, true)
-                .withQuery(query);
-    }
-
-    private <T> T executeRequest(Request<T> request) {
-            try {
-                return request.execute();
-            } catch (Auth0Exception e) {
-                log.info(e.getMessage(), e);
-                return null;
-            }
+    private String collectionToQuery(Collection<String> ids) {
+        return String.join(" or ",
+                ids.stream().filter(id -> id != null).map(id -> "user_id:" + id).collect(Collectors.toList()));
     }
 }

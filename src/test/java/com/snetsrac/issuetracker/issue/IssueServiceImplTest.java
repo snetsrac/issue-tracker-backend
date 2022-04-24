@@ -3,11 +3,8 @@ package com.snetsrac.issuetracker.issue;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import com.snetsrac.issuetracker.issue.Issue.Priority;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,10 +29,7 @@ public class IssueServiceImplTest {
 
     @BeforeAll
     static void initData() {
-        issueList = new ArrayList<>();
-        issueList.add(new Issue("Issue 1", "First issue.", Priority.HIGH, "1234"));
-        issueList.add(new Issue("Issue 2", "Second issue.", Priority.MEDIUM, "1234"));
-        issueList.add(new Issue("Issue 3", "Third issue.", Priority.LOW, "1234"));
+        issueList = List.of(new Issue(), new Issue(), new Issue());
     }
 
     @Test

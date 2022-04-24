@@ -1,19 +1,20 @@
 package com.snetsrac.issuetracker.user;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import com.auth0.json.mgmt.users.User;
 import com.auth0.json.mgmt.users.UsersPage;
 
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Order;
 
 public interface UserService {
-    public UsersPage findAll(Pageable pageable);
+    public UsersPage findAll(int pageNumber, int amountPerPage, Order order);
 
-    public User findById(String id);
+    public Set<User> findByIds(Collection<String> ids);
 
-    public Map<String, User> findByIds(Collection<String> ids);
+    public Optional<User> findById(String id);
 
-    public User findByUsername(String username);
+    public Optional<User> findByUsername(String username);
 }
