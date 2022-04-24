@@ -11,22 +11,22 @@ import com.auth0.net.AuthRequest;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
-@Component
+@Configuration
 public class Auth0ManagementApi {
 
-    @Value("${AUTH0_DOMAIN}")
+    @Value("${AUTH0_DOMAIN:}")
     private String domain;
 
-    @Value("${AUTH0_CLIENT_ID}")
+    @Value("${AUTH0_CLIENT_ID:}")
     private String clientId;
 
-    @Value("${AUTH0_CLIENT_SECRET}")
+    @Value("${AUTH0_CLIENT_SECRET:}")
     private String clientSecret;
 
     @Bean
-    private ManagementAPI auth0ManagementApiBean() throws Auth0Exception {
+    public ManagementAPI auth0ManagementApiBean() throws Auth0Exception {
         // Enable logging
         HttpOptions options = new HttpOptions();
         options.setLoggingOptions(new LoggingOptions(LogLevel.BASIC));
