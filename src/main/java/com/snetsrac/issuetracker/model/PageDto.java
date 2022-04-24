@@ -52,6 +52,6 @@ public class PageDto<D> {
 
     @Override
     public String toString() {
-        return "PageMetadata [content=" + content + ", pageMetadata=" + pageMetadata + "]";
+        return "PageDto [content=" + content + ", pageMetadata=" + pageMetadata + "]";
     }
 }

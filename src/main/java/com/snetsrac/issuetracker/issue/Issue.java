@@ -49,20 +49,20 @@ public class Issue extends BaseEntity {
         LOW
     }
 
-    @Column(name = "title")
+    @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "description")
+    @Column(name = "description", nullable = false)
     private String description;
 
     @Enumerated(EnumType.STRING)
     @Type(type = "postgresql_enum")
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     private Status status;
 
     @Enumerated(EnumType.STRING)
     @Type(type = "postgresql_enum")
-    @Column(name = "priority")
+    @Column(name = "priority", nullable = false)
     private Priority priority;
 
     @Column(name = "submitter_id")
@@ -70,10 +70,11 @@ public class Issue extends BaseEntity {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "issue_assignee", joinColumns = @JoinColumn(name = "issue_id"))
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false)
     private Set<String> assigneeIds;
 
     @CreatedDate
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     public String getTitle() {
