@@ -2,6 +2,8 @@ package com.snetsrac.issuetracker.issue.dto;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -31,7 +33,7 @@ public class IssueMapper {
      * @return an issue dto
      * @throws IllegalArgumentException if issue or userMap are null
      */
-    public IssueDto toDto(Issue issue, Map<String, UserDto> userMap) {
+    public static IssueDto toDto(Issue issue, Map<String, UserDto> userMap) {
 
         if (issue == null || userMap == null) {
             throw new IllegalArgumentException("issue and userMap must no be null");
@@ -45,20 +47,26 @@ public class IssueMapper {
      * a user cannot be found in the userMap, {@code null} will be set in its place.
      * 
      * @param page a page of issue
-     * @param userMap a map of user ids to user dtos
+     * @param users a set of user dtos
      * @return a page dto
      * @throws IllegalArgumentException if page or userMap are null
      */
-    public PageDto<IssueDto> toPageDto(Page<Issue> page, Map<String, UserDto> userMap) {
-        if (page == null || userMap == null) {
-            throw new IllegalArgumentException("page and userMap must no be null");
+    public static PageDto<IssueDto> toPageDto(Page<Issue> page, Set<UserDto> userDtos) {
+
+        if (page == null || userDtos == null) {
+            throw new IllegalArgumentException("page and userMap must not be null");
         }
 
-        PageDto<IssueDto> pageDto = new PageDto<>();
+        // Build a map of user ids to users
+        Map<String, UserDto> userMap = userDtos.stream().collect(Collectors.toMap(UserDto::getId, Function.identity()));
+
+        // Build the issue dtos
         List<IssueDto> issueDtos = page.getContent().stream()
                 .map(issue -> toDtoInternal(issue, userMap))
                 .collect(Collectors.toList());
 
+        // Build the page dto
+        PageDto<IssueDto> pageDto = new PageDto<>();
         pageDto.setContent(issueDtos);
         pageDto.setPageMetadata(new PageMetadata(page));
 
@@ -86,10 +94,13 @@ public class IssueMapper {
         return issue;
     }
 
-    private IssueDto toDtoInternal(Issue issue, Map<String, UserDto> userMap) {
+    private static IssueDto toDtoInternal(Issue issue, Map<String, UserDto> userMap) {
         IssueDto dto = new IssueDto();
 
-        dto.setId(issue.getId());
+        if (issue.getId() != null) {
+            dto.setId(issue.getId());
+        }
+
         dto.setTitle(issue.getTitle());
         dto.setDescription(issue.getDescription());
         dto.setStatus(issue.getStatus());
@@ -100,8 +111,12 @@ public class IssueMapper {
                         .stream()
                         .map(id -> userMap.get(id))
                         .filter(userDto -> userDto != null)
-                        .collect(Collectors.toSet()));
-        dto.setCreatedAt(issue.getCreatedAt().toString());
+                        .collect(Collectors.toSet())
+        );
+
+        if (issue.getCreatedAt() != null) {
+            dto.setCreatedAt(issue.getCreatedAt().toString());
+        }
 
         return dto;
     }

@@ -23,7 +23,7 @@ public class UserMapper {
      * @return a user dto
      * @throws IllegalArgumentException if user is null
      */
-    public UserDto toDto(User user) {
+    public static UserDto toDto(User user) {
         
         if (user == null) {
             throw new IllegalArgumentException("user must not be null");
@@ -47,7 +47,7 @@ public class UserMapper {
      * @return a page dto
      * @throws IllegalArgumentException if page is null
      */
-    public PageDto<UserDto> toPageDto(UsersPage page) {
+    public static PageDto<UserDto> toPageDto(UsersPage page) {
         if (page == null) {
             throw new IllegalArgumentException("page must not be null");
         }
