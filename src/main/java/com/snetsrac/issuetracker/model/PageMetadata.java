@@ -1,6 +1,7 @@
 package com.snetsrac.issuetracker.model;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -8,6 +9,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import org.springframework.data.domain.Sort;
 
+/**
+ * Represents page information that will included by the server in API responses
+ * for endpoints that support pagination.
+ */
 @JsonInclude(Include.NON_NULL)
 public class PageMetadata {
     private Integer size;
@@ -78,6 +83,34 @@ public class PageMetadata {
 
     public void setSort(List<String> sort) {
         this.sort = sort;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+
+        if (!(obj instanceof PageMetadata))
+            return false;
+
+        PageMetadata pageMetadata = (PageMetadata) obj;
+
+        return Objects.equals(pageMetadata.size, this.size) &&
+                Objects.equals(pageMetadata.totalElements, this.totalElements) &&
+                Objects.equals(pageMetadata.totalPages, this.totalPages) &&
+                Objects.equals(pageMetadata.number, this.number) &&
+                Objects.equals(pageMetadata.sort, this.sort);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(size, totalElements, totalPages, number, sort);
+    }
+
+    @Override
+    public String toString() {
+        return "PageMetadata [size=" + size + ", totalElements=" + totalElements + ", totalPages=" + totalPages
+                + ", number=" + number + ", sort" + sort + "]";
     }
 
     private static String sortToString(Sort.Order order) {

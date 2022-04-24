@@ -21,6 +21,9 @@ import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+/**
+ * JPA entity representing an issue.
+ */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "issue")
@@ -72,16 +75,6 @@ public class Issue extends BaseEntity {
 
     @CreatedDate
     private Instant createdAt;
-
-    public Issue() {
-    }
-    
-    public Issue(String title, String description, Priority priority, String submitterId) {
-        this.title = title;
-        this.description = description;
-        this.priority = priority;
-        this.submitterId = submitterId;
-    }
 
     public String getTitle() {
         return title;
