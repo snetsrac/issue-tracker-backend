@@ -1,6 +1,5 @@
 package com.snetsrac.issuetracker.issue.dto;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.validation.constraints.NotBlank;
@@ -9,6 +8,10 @@ import com.snetsrac.issuetracker.issue.Issue.Priority;
 import com.snetsrac.issuetracker.issue.Issue.Status;
 import com.snetsrac.issuetracker.model.EnumString;
 
+/**
+ * Represents the {@code Issue} object that will be deserialized from the JSON
+ * request body for issue update API requests.
+ */
 public class IssueUpdateDto {
 
     @NotBlank(message = "{issue.title.required}")
@@ -61,14 +64,6 @@ public class IssueUpdateDto {
 
     public Set<String> getAssigneeIds() {
         return assigneeIds;
-    }
-
-    public void setAssigneeIds(Set<String> assigneeIds) {
-        if (assigneeIds == null) {
-            this.assigneeIds = new HashSet<>();
-        } else {
-            this.assigneeIds = assigneeIds;
-        }
     }
 
 }

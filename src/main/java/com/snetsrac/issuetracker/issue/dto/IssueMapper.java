@@ -28,25 +28,25 @@ public class IssueMapper {
      * Maps an {@link Issue} entity to an {@link IssueDto}. If a user cannot be
      * found in the userMap, {@code null} will be set in its place.
      * 
-     * @param issue   the issue to be mapped
-     * @param userMap a map of user ids to user dtos
+     * @param issue the issue to be mapped
+     * @param users a set of user dtos
      * @return an issue dto
      * @throws IllegalArgumentException if issue or userMap are null
      */
-    public static IssueDto toDto(Issue issue, Map<String, UserDto> userMap) {
+    public static IssueDto toDto(Issue issue, Set<UserDto> userDtos) {
 
-        if (issue == null || userMap == null) {
-            throw new IllegalArgumentException("issue and userMap must no be null");
+        if (issue == null || userDtos == null) {
+            throw new IllegalArgumentException("issue and users must no be null");
         }
 
-        return toDtoInternal(issue, userMap);
+        return toDtoInternal(issue, userDtos);
     }
 
     /**
      * Maps a {@link Page}<{@link Issue}> to a {@link PageDto}<{@link IssueDto}>. If
      * a user cannot be found in the userMap, {@code null} will be set in its place.
      * 
-     * @param page a page of issue
+     * @param page  a page of issue
      * @param users a set of user dtos
      * @return a page dto
      * @throws IllegalArgumentException if page or userMap are null
@@ -57,12 +57,9 @@ public class IssueMapper {
             throw new IllegalArgumentException("page and userMap must not be null");
         }
 
-        // Build a map of user ids to users
-        Map<String, UserDto> userMap = userDtos.stream().collect(Collectors.toMap(UserDto::getId, Function.identity()));
-
         // Build the issue dtos
         List<IssueDto> issueDtos = page.getContent().stream()
-                .map(issue -> toDtoInternal(issue, userMap))
+                .map(issue -> toDtoInternal(issue, userDtos))
                 .collect(Collectors.toList());
 
         // Build the page dto
@@ -73,19 +70,48 @@ public class IssueMapper {
         return pageDto;
     }
 
-    public Issue issueCreationDtoToIssue(@Valid IssueCreationDto dto, String submitterId) {
+    /**
+     * Maps an {@link IssueCreationDto} to an {@link Issue} to be persisted to the
+     * database. Assumes dto is valid.
+     * 
+     * @param dto         the dto representing a new issue
+     * @param submitterId the user id of the user submitting the issue
+     * @return the new issue, ready to be persisted
+     * @throws IllegalArgumentException if dto or submitterId are null
+     */
+    public static Issue toIssue(IssueCreationDto dto, String submitterId) {
+
+        if (dto == null || submitterId == null || submitterId.length() == 0) {
+            throw new IllegalArgumentException("dto and submitterId must not be null or empty");
+        }
+
         Issue issue = new Issue();
 
         issue.setTitle(dto.getTitle());
         issue.setDescription(dto.getDescription());
         issue.setStatus(Status.OPEN);
-        issue.setPriority(Priority.valueOf(dto.getPriority().toUpperCase()));
+        issue.setPriority(Priority.fromString(dto.getPriority()));
         issue.setSubmitterId(submitterId);
 
         return issue;
     }
 
-    public Issue issueUpdateDtoOntoIssue(@Valid IssueUpdateDto dto, Issue issue) {
+    /**
+     * Maps an {@link IssueCreationDto} onto an existing {@link Issue}, modifying it
+     * in-place to be persisted to the database during an update operation. Assumes
+     * dto is valid.
+     * 
+     * @param dto   the dto representing an updated issue
+     * @param issue the existing issue
+     * @return the original issue, with modifications
+     * @throws IllegalArgumentException if dto or issue are null
+     */
+    public static Issue ontoIssue(@Valid IssueUpdateDto dto, Issue issue) {
+
+        if (dto == null || issue == null) {
+            throw new IllegalArgumentException("dto and issue must not be null");
+        }
+
         issue.setTitle(dto.getTitle());
         issue.setDescription(dto.getDescription());
         issue.setStatus(Status.valueOf(dto.getStatus().replaceAll(" ", "_").toUpperCase()));
@@ -94,7 +120,11 @@ public class IssueMapper {
         return issue;
     }
 
-    private static IssueDto toDtoInternal(Issue issue, Map<String, UserDto> userMap) {
+    private static IssueDto toDtoInternal(Issue issue, Set<UserDto> userDtos) {
+
+        // Build a map of user ids to users
+        Map<String, UserDto> userMap = userDtos.stream().collect(Collectors.toMap(UserDto::getId, Function.identity()));
+
         IssueDto dto = new IssueDto();
 
         if (issue.getId() != null) {
@@ -111,8 +141,7 @@ public class IssueMapper {
                         .stream()
                         .map(id -> userMap.get(id))
                         .filter(userDto -> userDto != null)
-                        .collect(Collectors.toSet())
-        );
+                        .collect(Collectors.toSet()));
 
         if (issue.getCreatedAt() != null) {
             dto.setCreatedAt(issue.getCreatedAt().toString());

@@ -1,6 +1,7 @@
 package com.snetsrac.issuetracker.issue;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.CollectionTable;
@@ -14,7 +15,9 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.snetsrac.issuetracker.error.EnumValueNotPresentException;
 import com.snetsrac.issuetracker.model.BaseEntity;
 
 import org.hibernate.annotations.Type;
@@ -28,25 +31,63 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "issue")
 public class Issue extends BaseEntity {
-    
+
     public enum Status {
-        @JsonProperty("open")
-        OPEN,
-        @JsonProperty("in progress")
-        IN_PROGRESS,
-        @JsonProperty("more info needed")
-        MORE_INFO_NEEDED,
-        @JsonProperty("resolved")
-        RESOLVED
+        OPEN("open"),
+        IN_PROGRESS("in progress"),
+        MORE_INFO_NEEDED("more info needed"),
+        RESOLVED("resolved");
+
+        private String value;
+
+        @JsonCreator
+        Status(String value) {
+            this.value = value;
+        }
+
+        @JsonValue
+        public String toString() {
+            return value;
+        }
+
+        public static Status fromString(String input) {
+            for (Status status : values()) {
+                if (status.toString().equals(input)) {
+                    return status;
+                }
+            }
+
+            throw new EnumValueNotPresentException("Not a valid status: " + input);
+        }
     }
-    
+
     public enum Priority {
-        @JsonProperty("high")
-        HIGH,
-        @JsonProperty("medium")
-        MEDIUM,
-        @JsonProperty("low")
-        LOW
+        HIGH("high"),
+        MEDIUM("medium"),
+        LOW("low");
+
+        private String value;
+
+        @JsonCreator
+        Priority(String value) {
+            this.value = value;
+        }
+
+        @Override
+        @JsonValue
+        public String toString() {
+            return value;
+        }
+
+        public static Priority fromString(String input) {
+            for (Priority priority : values()) {
+                if (priority.toString().equals(input)) {
+                    return priority;
+                }
+            }
+
+            throw new EnumValueNotPresentException("Not a valid priority: " + input);
+        }
     }
 
     @Column(name = "title", nullable = false)
@@ -131,6 +172,38 @@ public class Issue extends BaseEntity {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+
+        if (!(obj instanceof Issue))
+            return false;
+
+        Issue issue = (Issue) obj;
+
+        return Objects.equals(issue.id, this.id) &&
+                Objects.equals(issue.title, this.title) &&
+                Objects.equals(issue.description, this.description) &&
+                Objects.equals(issue.status, this.status) &&
+                Objects.equals(issue.priority, this.priority) &&
+                Objects.equals(issue.submitterId, this.submitterId) &&
+                Objects.equals(issue.assigneeIds, this.assigneeIds) &&
+                Objects.equals(issue.createdAt, this.createdAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title, description, status, priority, submitterId, assigneeIds, createdAt);
+    }
+
+    @Override
+    public String toString() {
+        return "IssueDto [id=" + id + ", title=" + title + ", description=" + description + ", status=" + status
+                + ", priority=" + status + ", submitterId=" + submitterId + ", assigneeIds=" + assigneeIds
+                + ", createdAt=" + createdAt + "]";
     }
 
 }

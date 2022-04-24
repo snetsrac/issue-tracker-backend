@@ -5,6 +5,10 @@ import javax.validation.constraints.NotBlank;
 import com.snetsrac.issuetracker.issue.Issue.Priority;
 import com.snetsrac.issuetracker.model.EnumString;
 
+/**
+ * Represents the {@code Issue} object that will be deserialized from the JSON
+ * request body for issue creation API requests.
+ */
 public class IssueCreationDto {
     @NotBlank(message = "{issue.title.required}")
     private String title;

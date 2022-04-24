@@ -32,10 +32,6 @@ paths:
           $ref: "#/components/responses/UsersPage"
         "400":
           $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
   /users/{user_id}:
     get:
       tags:
@@ -49,10 +45,6 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/User"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
   /users/{username}:
@@ -68,10 +60,6 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/User"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
     put:
@@ -90,10 +78,6 @@ paths:
           $ref: "#/components/responses/User"
         "400":
           $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
   /users/{username}/issues:
@@ -114,10 +98,6 @@ paths:
           $ref: "#/components/responses/UsersPage"
         "400":
           $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
   /issues:
@@ -135,12 +115,6 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/IssuesPage"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
     post:
       tags:
         - Issues
@@ -155,10 +129,6 @@ paths:
           $ref: "#/components/responses/Issue"
         "400":
           $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
   /issues/{id}:
     get:
       tags:
@@ -172,10 +142,6 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/Issue"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
     put:
@@ -195,10 +161,6 @@ paths:
           $ref: "#/components/responses/Issue"
         "400":
           $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
     delete:
       tags:
         - Issues
@@ -211,10 +173,6 @@ paths:
       responses:
         "204":
           $ref: "#/components/responses/NoContent"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
 components:
@@ -394,10 +352,6 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
-    Unauthorized:
-      description: Unauthorized
-    Forbidden:
-      description: Forbidden
     NotFound:
       description: Not Found
       content:

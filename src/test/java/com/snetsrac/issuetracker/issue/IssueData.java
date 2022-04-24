@@ -9,7 +9,9 @@ import java.util.Set;
 import com.auth0.json.mgmt.users.User;
 import com.snetsrac.issuetracker.issue.Issue.Priority;
 import com.snetsrac.issuetracker.issue.Issue.Status;
+import com.snetsrac.issuetracker.issue.dto.IssueCreationDto;
 import com.snetsrac.issuetracker.issue.dto.IssueDto;
+import com.snetsrac.issuetracker.issue.dto.IssueUpdateDto;
 import com.snetsrac.issuetracker.model.PageDto;
 import com.snetsrac.issuetracker.model.PageMetadata;
 import com.snetsrac.issuetracker.user.UserData;
@@ -121,6 +123,99 @@ public class IssueData {
         pageDto.setPageMetadata(new PageMetadata(issuePage()));
 
         return pageDto;
+    }
+
+    public static IssueCreationDto issueCreationDto() {
+        IssueCreationDto dto = new IssueCreationDto();
+
+        dto.setTitle("Test Issue");
+        dto.setDescription("This is a test issue.");
+        dto.setPriority(Priority.MEDIUM.toString());
+
+        return dto;
+    }
+
+    public static Issue issueCreationIssue() {
+        Issue issue = new Issue();
+
+        issue.setTitle("Test Issue");
+        issue.setDescription("This is a test issue.");
+        issue.setStatus(Status.OPEN);
+        issue.setPriority(Priority.MEDIUM);
+        issue.setSubmitterId("123");
+
+        return issue;
+    }
+
+    public static IssueUpdateDto issueUpdateDto() {
+        IssueUpdateDto dto = new IssueUpdateDto();
+
+        dto.setTitle("Modified Test Issue");
+        dto.setDescription("This is a modified test issue.");
+        dto.setStatus(Status.MORE_INFO_NEEDED.toString());
+        dto.setPriority(Priority.LOW.toString());
+
+        return dto;
+    }
+
+    public static Issue issueUpdateIssue() {
+        List<User> users = UserData.userList();
+        Issue issue = new Issue();
+
+        issue.setId(123);
+        issue.setTitle("Test Issue");
+        issue.setDescription("This is a test issue.");
+        issue.setStatus(Status.OPEN);
+        issue.setPriority(Priority.HIGH);
+        issue.setSubmitterId(users.get(0).getId());
+        Set<String> issue0Assignees = new LinkedHashSet<>();
+        issue0Assignees.add(users.get(0).getId());
+        issue0Assignees.add(users.get(1).getId());
+        issue0Assignees.add(users.get(2).getId());
+        issue.setAssigneeIds(issue0Assignees);
+        issue.setCreatedAt(Instant.EPOCH.plusSeconds(1));
+
+        return issue;
+    }
+
+    public static Issue issueUpdateModifiedIssue() {
+        List<User> users = UserData.userList();
+        Issue issue = new Issue();
+
+        issue.setId(123);
+        issue.setTitle("Modified Test Issue");
+        issue.setDescription("This is a modified test issue.");
+        issue.setStatus(Status.MORE_INFO_NEEDED);
+        issue.setPriority(Priority.LOW);
+        issue.setSubmitterId(users.get(0).getId());
+        Set<String> issue0Assignees = new LinkedHashSet<>();
+        issue0Assignees.add(users.get(0).getId());
+        issue0Assignees.add(users.get(1).getId());
+        issue0Assignees.add(users.get(2).getId());
+        issue.setAssigneeIds(issue0Assignees);
+        issue.setCreatedAt(Instant.EPOCH.plusSeconds(1));
+
+        return issue;
+    }
+
+    public static IssueDto issueUpdateModifiedIssueDto() {
+        List<UserDto> userDtos = UserData.userDtoList();
+        IssueDto dto = new IssueDto();
+
+        dto.setId(123);
+        dto.setTitle("Modified Test Issue");
+        dto.setDescription("This is a modified test issue.");
+        dto.setStatus(Status.MORE_INFO_NEEDED);
+        dto.setPriority(Priority.LOW);
+        dto.setSubmitter(userDtos.get(0));
+        Set<UserDto> issue0Assignees = new LinkedHashSet<>();
+        issue0Assignees.add(userDtos.get(0));
+        issue0Assignees.add(userDtos.get(1));
+        issue0Assignees.add(userDtos.get(2));
+        dto.setAssignees(issue0Assignees);
+        dto.setCreatedAt(Instant.EPOCH.plusSeconds(1).toString());
+
+        return dto;
     }
 
 }

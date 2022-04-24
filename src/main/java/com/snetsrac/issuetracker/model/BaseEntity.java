@@ -15,7 +15,7 @@ public class BaseEntity implements Persistable<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Integer id;
+    protected Integer id;
 
     @Override
     public Integer getId() {
