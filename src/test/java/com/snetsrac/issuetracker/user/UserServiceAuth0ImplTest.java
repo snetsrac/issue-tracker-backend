@@ -4,9 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -18,17 +16,20 @@ import com.auth0.json.mgmt.users.User;
 import com.auth0.json.mgmt.users.UsersPage;
 import com.auth0.net.Request;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceImplTest {
+public class UserServiceAuth0ImplTest {
 
     @Mock
     private ManagementAPI managementAPI;
@@ -43,61 +44,46 @@ public class UserServiceImplTest {
     private Request<UsersPage> usersPageRequest;
 
     @InjectMocks
-    private UserServiceImpl userService;
-
-    private static Collection<String> userIds;
-    private static List<User> userList;
-
-    @BeforeAll
-    static void initData() {
-        userIds = List.of("123", "456", "789");
-
-        userList = List.of(new User(), new User(), new User());
-        userList.get(0).setId("123");
-        userList.get(0).setAppMetadata(Map.of("username", "user_0")); 
-        userList.get(1).setId("456");
-        userList.get(1).setAppMetadata(Map.of("username", "user_1"));
-        userList.get(2).setId("789");
-        userList.get(2).setAppMetadata(Map.of("username", "user_2"));
-    }
+    private UserServiceAuth0Impl userService;
 
     @Test
     void findAllThrowsIfOrderIsNull() throws Auth0Exception {
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> userService.findAll(0, 20, null));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> userService.findAll(null));
     }
 
     @Test
     void findAllReturnsEmptyPageIfRequestThrows() throws Auth0Exception {
+        Pageable pageable = PageRequest.of(3, 18, Sort.by(Order.desc("user_id")));
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true)
-                .withPage(0, 20)
-                .withSort("user_id:1")
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true)
+                .withPage(3, 18)
+                .withSort("user_id:-1")
                 .withTotals(true);
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.list(argument.capture())).thenReturn(usersPageRequest);
         when(usersPageRequest.execute()).thenThrow(Auth0Exception.class);
 
-        assertThat(userService.findAll(0, 20, Order.asc("user_id")).getItems()).isEqualTo(List.of());
+        assertThat(userService.findAll(pageable).getContent()).isEqualTo(List.of());
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 
     @Test
     void findAllReturnsUsersPage() throws Auth0Exception {
+        Pageable pageable = PageRequest.of(3, 18, Sort.by(Order.desc("user_id")));
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true)
-                .withPage(0, 20)
-                .withSort("user_id:1")
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true)
+                .withPage(3, 18)
+                .withSort("user_id:-1")
                 .withTotals(true);
-        UsersPage usersPage = new UsersPage(userList);
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.list(argument.capture())).thenReturn(usersPageRequest);
-        when(usersPageRequest.execute()).thenReturn(usersPage);
+        when(usersPageRequest.execute()).thenReturn(new UsersPage(UserTestData.AUTH0_USER_LIST));
 
-        assertThat(userService.findAll(0, 20, Order.asc("user_id"))).isSameAs(usersPage);
+        assertThat(userService.findAll(pageable)).isEqualTo(new PageImpl<>(UserTestData.USER_LIST));
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 
@@ -110,14 +96,14 @@ public class UserServiceImplTest {
     void findByIdsReturnsEmptySetIfRequestThrows() throws Auth0Exception {
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true)
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true)
                 .withQuery("user_id:123 or user_id:456 or user_id:789");
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.list(argument.capture())).thenReturn(usersPageRequest);
         when(usersPageRequest.execute()).thenThrow(Auth0Exception.class);
 
-        assertThat(userService.findByIds(userIds)).isEqualTo(Set.of());
+        assertThat(userService.findByIds(UserTestData.USER_IDS)).isEqualTo(Set.of());
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 
@@ -125,14 +111,14 @@ public class UserServiceImplTest {
     void findByIdsReturnsUserSet() throws Auth0Exception {
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true)
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true)
                 .withQuery("user_id:123 or user_id:456 or user_id:789");
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.list(argument.capture())).thenReturn(usersPageRequest);
-        when(usersPageRequest.execute()).thenReturn(new UsersPage(userList));
+        when(usersPageRequest.execute()).thenReturn(new UsersPage(UserTestData.AUTH0_USER_LIST));
 
-        assertThat(userService.findByIds(userIds)).isEqualTo(Set.copyOf(userList));
+        assertThat(userService.findByIds(UserTestData.USER_IDS)).isEqualTo(Set.copyOf(UserTestData.USER_LIST));
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 
@@ -140,14 +126,14 @@ public class UserServiceImplTest {
     void findByIdsReturnsEmptyUserSet() throws Auth0Exception {
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true)
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true)
                 .withQuery("user_id:123 or user_id:456 or user_id:789");
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.list(argument.capture())).thenReturn(usersPageRequest);
         when(usersPageRequest.execute()).thenReturn(new UsersPage(List.of()));
 
-        assertThat(userService.findByIds(userIds)).isEqualTo(Set.of());
+        assertThat(userService.findByIds(UserTestData.USER_IDS)).isEqualTo(Set.of());
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 
@@ -155,16 +141,16 @@ public class UserServiceImplTest {
     void findByIdsReturnsUserSetIfIdsContainsNull() throws Auth0Exception {
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true)
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true)
                 .withQuery("user_id:123 or user_id:456 or user_id:789");
-        List<String> userIdsWithNull = new ArrayList<>(userIds);
+        List<String> userIdsWithNull = new ArrayList<>(UserTestData.USER_IDS);
         userIdsWithNull.add(null);
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.list(argument.capture())).thenReturn(usersPageRequest);
-        when(usersPageRequest.execute()).thenReturn(new UsersPage(userList));
+        when(usersPageRequest.execute()).thenReturn(new UsersPage(UserTestData.AUTH0_USER_LIST));
 
-        assertThat(userService.findByIds(userIdsWithNull)).isEqualTo(Set.copyOf(userList));
+        assertThat(userService.findByIds(userIdsWithNull)).isEqualTo(Set.copyOf(UserTestData.USER_LIST));
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 
@@ -178,13 +164,13 @@ public class UserServiceImplTest {
     void findByIdReturnsEmptyOptionalIfRequestThrows() throws Auth0Exception {
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true);
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true);
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.get(anyString(), argument.capture())).thenReturn(userRequest);
         when(userRequest.execute()).thenThrow(Auth0Exception.class);
 
-        assertThat(userService.findById(userList.get(0).getId())).isEqualTo(Optional.empty());
+        assertThat(userService.findById(UserTestData.USER.getId())).isEqualTo(Optional.empty());
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 
@@ -192,13 +178,13 @@ public class UserServiceImplTest {
     void findByIdReturnsUser() throws Auth0Exception {
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true);
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true);
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.get(anyString(), argument.capture())).thenReturn(userRequest);
-        when(userRequest.execute()).thenReturn(userList.get(0));
+        when(userRequest.execute()).thenReturn(UserTestData.AUTH0_USER);
 
-        assertThat(userService.findById(userList.get(0).getId())).isEqualTo(Optional.of(userList.get(0)));
+        assertThat(userService.findById(UserTestData.USER.getId())).isEqualTo(Optional.of(UserTestData.USER));
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 
@@ -206,13 +192,13 @@ public class UserServiceImplTest {
     void findByIdReturnsEmptyOptional() throws Auth0Exception {
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true);
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true);
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.get(anyString(), argument.capture())).thenReturn(userRequest);
         when(userRequest.execute()).thenReturn(null);
 
-        assertThat(userService.findById(userList.get(0).getId())).isEqualTo(Optional.empty());
+        assertThat(userService.findById(UserTestData.USER.getId())).isEqualTo(Optional.empty());
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 
@@ -226,14 +212,14 @@ public class UserServiceImplTest {
     void findByUsernameThrowsIfMoreThanOneUserReturned() throws Auth0Exception {
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true)
-                .withQuery("app_metadata.username:user_0");
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true)
+                .withQuery("app_metadata.username:" + UserTestData.USER.getUsername());
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.list(argument.capture())).thenReturn(usersPageRequest);
-        when(usersPageRequest.execute()).thenReturn(new UsersPage(userList));
+        when(usersPageRequest.execute()).thenReturn(new UsersPage(UserTestData.AUTH0_USER_LIST));
 
-        assertThatExceptionOfType(AssertionError.class).isThrownBy(() -> userService.findByUsername((String) userList.get(0).getAppMetadata().get("username")));
+        assertThatExceptionOfType(AssertionError.class).isThrownBy(() -> userService.findByUsername(UserTestData.USER.getUsername()));
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 
@@ -241,14 +227,14 @@ public class UserServiceImplTest {
     void findByUsernameReturnsEmptyOptionalIfRequestThrows() throws Auth0Exception {
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true)
-                .withQuery("app_metadata.username:user_0");
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true)
+                .withQuery("app_metadata.username:" + UserTestData.USER.getUsername());
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.list(argument.capture())).thenReturn(usersPageRequest);
         when(usersPageRequest.execute()).thenThrow(Auth0Exception.class);
 
-        assertThat(userService.findByUsername((String) userList.get(0).getAppMetadata().get("username"))).isEqualTo(Optional.empty());
+        assertThat(userService.findByUsername(UserTestData.USER.getUsername())).isEqualTo(Optional.empty());
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 
@@ -256,14 +242,14 @@ public class UserServiceImplTest {
     void findByUsernameReturnsUser() throws Auth0Exception {
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true)
-                .withQuery("app_metadata.username:user_0");
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true)
+                .withQuery("app_metadata.username:" + UserTestData.USER.getUsername());
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.list(argument.capture())).thenReturn(usersPageRequest);
-        when(usersPageRequest.execute()).thenReturn(new UsersPage(userList.subList(0, 1)));
+        when(usersPageRequest.execute()).thenReturn(new UsersPage(List.of(UserTestData.AUTH0_USER)));
 
-        assertThat(userService.findByUsername((String) userList.get(0).getAppMetadata().get("username"))).isEqualTo(Optional.of(userList.get(0)));
+        assertThat(userService.findByUsername(UserTestData.USER.getUsername())).isEqualTo(Optional.of(UserTestData.USER));
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 
@@ -271,14 +257,14 @@ public class UserServiceImplTest {
     void findByUsernameReturnsEmptyOptional() throws Auth0Exception {
         ArgumentCaptor<UserFilter> argument = ArgumentCaptor.forClass(UserFilter.class);
         UserFilter userFilter = new UserFilter()
-                .withFields(UserServiceImpl.USER_FIELDS, true)
-                .withQuery("app_metadata.username:user_0");
+                .withFields(UserServiceAuth0Impl.USER_FIELDS, true)
+                .withQuery("app_metadata.username:" + UserTestData.USER.getUsername());
 
         when(managementAPI.users()).thenReturn(usersEntity);
         when(usersEntity.list(argument.capture())).thenReturn(usersPageRequest);
         when(usersPageRequest.execute()).thenReturn(new UsersPage(List.of()));
 
-        assertThat(userService.findByUsername((String) userList.get(0).getAppMetadata().get("username"))).isEqualTo(Optional.empty());
+        assertThat(userService.findByUsername(UserTestData.USER.getUsername())).isEqualTo(Optional.empty());
         assertThat(argument.getValue().getAsMap()).containsExactlyInAnyOrderEntriesOf(userFilter.getAsMap());
     }
 }

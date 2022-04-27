@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 
 /**
@@ -21,28 +22,12 @@ public class PageMetadata {
     private Integer number;
     private List<String> sort;
 
-    public PageMetadata(@SuppressWarnings("rawtypes") org.springframework.data.domain.Page page) {
+    public PageMetadata(@SuppressWarnings("rawtypes") Page page) {
         this.size = page.getSize();
         this.totalElements = page.getTotalElements();
         this.totalPages = page.getTotalPages();
         this.number = page.getNumber();
         this.sort = page.getSort().toList().stream().map(PageMetadata::sortToString).collect(Collectors.toList());
-
-    }
-
-    public PageMetadata(@SuppressWarnings("rawtypes") com.auth0.json.mgmt.Page page) {
-        // If the query summary is included and valid, use it, otherwise use the list
-        // size as a fallback. The summary will not be included unless .withTotals(true)
-        // is added to the UserFilter.
-        if (page != null && page.getLimit() != null && page.getTotal() != null && page.getStart() != null
-                && page.getLimit() > 0) {
-            this.size = page.getLimit();
-            this.totalElements = page.getTotal().longValue();
-            this.totalPages = ((this.totalElements.intValue() - 1) / this.size) + 1;
-            this.number = page.getStart() / this.size;
-        } else {
-            this.size = page.getItems().size();
-        }
     }
 
     public Integer getSize() {

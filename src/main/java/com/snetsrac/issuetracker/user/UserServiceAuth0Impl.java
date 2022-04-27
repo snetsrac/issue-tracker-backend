@@ -1,6 +1,7 @@
 package com.snetsrac.issuetracker.user;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -9,12 +10,14 @@ import java.util.stream.Collectors;
 import com.auth0.client.mgmt.ManagementAPI;
 import com.auth0.client.mgmt.filter.UserFilter;
 import com.auth0.exception.Auth0Exception;
-import com.auth0.json.mgmt.users.User;
 import com.auth0.json.mgmt.users.UsersPage;
 import com.auth0.net.Request;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
@@ -22,14 +25,14 @@ import org.springframework.stereotype.Service;
  * Provides read and update functionality for users managed by Auth0.
  */
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceAuth0Impl implements UserService {
 
     static final String USER_FIELDS = "user_id,email,username,name,picture,app_metadata";
 
     private final ManagementAPI managementAPI;
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public UserServiceImpl(ManagementAPI managementAPI) {
+    public UserServiceAuth0Impl(ManagementAPI managementAPI) {
         this.managementAPI = managementAPI;
     }
 
@@ -44,27 +47,39 @@ public class UserServiceImpl implements UserService {
      * @throws IllegalArgumentException if order is null
      */
     @Override
-    public UsersPage findAll(int pageNumber, int amountPerPage, Order order) {
+    public Page<User> findAll(Pageable pageable) {
 
-        if (order == null) {
-            throw new IllegalArgumentException("order must not be null");
+        if (pageable == null) {
+            throw new IllegalArgumentException("pageable must not be null");
         }
 
+        // Get the first sort option (UserFilter only accepts a single property to sort
+        // by)
+        Optional<Order> order = pageable.getSort().get().findFirst();
+
         // Build user filter
-        UserFilter userFilter = userFilterWithFields()
-                .withPage(pageNumber, amountPerPage)
-                .withSort(order.getProperty() + ":" + (order.isAscending() ? "1" : "-1"))
-                .withTotals(true);
+        UserFilter userFilter;
+
+        if (order.isPresent()) {
+            userFilter = userFilterWithFields()
+                    .withPage(pageable.getPageNumber(), pageable.getPageSize())
+                    .withSort(order.get().getProperty() + ":" + (order.get().isAscending() ? "1" : "-1"))
+                    .withTotals(true);
+        } else {
+            userFilter = userFilterWithFields()
+                    .withPage(pageable.getPageNumber(), pageable.getPageSize())
+                    .withTotals(true);
+        }
 
         // Build request
         Request<UsersPage> request = managementAPI.users().list(userFilter);
 
         // Execute the request
         try {
-            return request.execute();
+            return fromAuth0UsersPage(request.execute());
         } catch (Auth0Exception e) {
-            log.info(e.getMessage(), e);
-            return new UsersPage(List.of());
+            log.error(e.getMessage(), e);
+            return new PageImpl<>(List.of());
         }
     }
 
@@ -94,9 +109,9 @@ public class UserServiceImpl implements UserService {
 
         // Execute the request
         try {
-            return Set.copyOf(request.execute().getItems());
+            return fromAuth0UsersPageToSet(request.execute());
         } catch (Auth0Exception e) {
-            log.info(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             return Set.of();
         }
     }
@@ -118,13 +133,14 @@ public class UserServiceImpl implements UserService {
         }
 
         // Build the request
-        Request<User> request = managementAPI.users().get(id, userFilterWithFields());
+        Request<com.auth0.json.mgmt.users.User> request = managementAPI.users().get(id, userFilterWithFields());
 
         // Execute the request
         try {
-            return Optional.ofNullable(request.execute());
+            User user = fromAuth0User(request.execute());
+            return Optional.ofNullable(user);
         } catch (Auth0Exception e) {
-            log.info(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             return Optional.empty();
         }
     }
@@ -162,12 +178,13 @@ public class UserServiceImpl implements UserService {
             assert (usersPage.getItems().size() <= 1);
 
             if (usersPage.getItems().size() == 1) {
-                return Optional.of(usersPage.getItems().get(0));
+                User user = fromAuth0User(usersPage.getItems().get(0));
+                return Optional.of(user);
             } else {
                 return Optional.empty();
             }
         } catch (Auth0Exception e) {
-            log.info(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             return Optional.empty();
         }
     }
@@ -179,5 +196,60 @@ public class UserServiceImpl implements UserService {
     private String collectionToQuery(Collection<String> ids) {
         return String.join(" or ",
                 ids.stream().filter(id -> id != null).map(id -> "user_id:" + id).collect(Collectors.toList()));
+    }
+
+    // private com.auth0.json.mgmt.users.User toAuth0User(User user) {
+    // com.auth0.json.mgmt.users.User auth0User = new
+    // com.auth0.json.mgmt.users.User();
+
+    // auth0User.setId(user.getId());
+    // auth0User.setEmail(user.getEmail());
+    // auth0User.setName(user.getName());
+    // auth0User.getAppMetadata().put("username", user.getUsername());
+    // auth0User.setPicture(user.getPicture());
+
+    // return auth0User;
+    // }
+
+    private User fromAuth0User(com.auth0.json.mgmt.users.User auth0User) {
+        if (auth0User == null) {
+            return null;
+        }
+
+        User user = new User();
+
+        user.setId(auth0User.getId());
+        user.setEmail(auth0User.getEmail());
+        user.setName(auth0User.getName());
+        user.setUsername((String) auth0User.getAppMetadata().get("username"));
+        user.setPicture(auth0User.getPicture());
+
+        return user;
+    }
+
+    private Page<User> fromAuth0UsersPage(UsersPage usersPage) {
+        if (usersPage == null) {
+            return new PageImpl<>(List.of());
+        }
+
+        List<User> users = usersPage.getItems()
+                .stream()
+                .map(auth0User -> fromAuth0User(auth0User))
+                .collect(Collectors.toList());
+        return new PageImpl<>(users);
+    }
+
+    private Set<User> fromAuth0UsersPageToSet(UsersPage usersPage) {
+        if (usersPage == null) {
+            return Set.of();
+        }
+
+        Set<User> users = new HashSet<>();
+
+        for (com.auth0.json.mgmt.users.User user : usersPage.getItems()) {
+            users.add(fromAuth0User(user));
+        }
+
+        return users;
     }
 }
