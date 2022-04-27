@@ -35,10 +35,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(IssueController.ENDPOINT)
+@RequestMapping(IssueController.ROOT)
 public class IssueController {
 
-    public static final String ENDPOINT = "/issues";
+    public static final String ROOT = "/issues";
 
     private final IssueService issueService;
     private final UserService userService;
@@ -87,7 +87,7 @@ public class IssueController {
         Issue issue = issueService.save(IssueMapper.toIssue(dto, auth.getName()));
 
         // Get the path to the new issue
-        URI location = URI.create(ENDPOINT + "/" + issue.getId());
+        URI location = URI.create(ROOT + "/" + issue.getId());
         
         // Get all relevant users and build a set of user dtos
         Set<UserDto> userDtos = userService.findByIds(getUserIds(issue))

@@ -63,14 +63,14 @@ public class IssueControllerTest {
 
     @Test
     void withoutAuth_GetIssues_Returns401() throws Exception {
-        mockMvc.perform(get(IssueController.ENDPOINT))
+        mockMvc.perform(get(IssueController.ROOT))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser
     void withoutRole_GetIssues_Returns403() throws Exception {
-        mockMvc.perform(get(IssueController.ENDPOINT))
+        mockMvc.perform(get(IssueController.ROOT))
                 .andExpect(status().isForbidden());
     }
 
@@ -81,7 +81,7 @@ public class IssueControllerTest {
         when(userService.findByIds(anyCollection())).thenReturn(Set.copyOf(UserTestData.USER_LIST));
         when(issueService.findAll(any(Pageable.class))).thenReturn(IssueTestData.ISSUE_PAGE);
 
-        MvcResult mvcResult = mockMvc.perform(get(IssueController.ENDPOINT)
+        MvcResult mvcResult = mockMvc.perform(get(IssueController.ROOT)
                 .param("page", "three")
                 .param("size", "eighteen")
                 .param("sort", "aoeuiao"))
@@ -101,7 +101,7 @@ public class IssueControllerTest {
         when(userService.findByIds(anyCollection())).thenReturn(Set.copyOf(UserTestData.USER_LIST));
         when(issueService.findAll(any(Pageable.class))).thenReturn(IssueTestData.ISSUE_PAGE);
 
-        MvcResult mvcResult = mockMvc.perform(get(IssueController.ENDPOINT)
+        MvcResult mvcResult = mockMvc.perform(get(IssueController.ROOT)
                 .param("page", "3")
                 .param("size", "18")
                 .param("sort", "id,desc"))
@@ -118,7 +118,7 @@ public class IssueControllerTest {
 
     @Test
     void withoutAuth_PostIssue_Returns401() throws Exception {
-        mockMvc.perform(post(IssueController.ENDPOINT)
+        mockMvc.perform(post(IssueController.ROOT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(IssueTestData.ISSUE_CREATION_DTO)))
                 .andExpect(status().isUnauthorized());
@@ -129,7 +129,7 @@ public class IssueControllerTest {
     @Test
     @WithMockUser
     void withoutRole_PostIssue_Returns403() throws Exception {
-        mockMvc.perform(post(IssueController.ENDPOINT)
+        mockMvc.perform(post(IssueController.ROOT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(IssueTestData.ISSUE_CREATION_DTO)))
                 .andExpect(status().isForbidden());
@@ -140,7 +140,7 @@ public class IssueControllerTest {
     @Test
     @WithMockUser(username = "123", authorities = "submit:issues")
     void withInvalidInput_PostIssue_Returns400() throws Exception {
-        mockMvc.perform(post(IssueController.ENDPOINT)
+        mockMvc.perform(post(IssueController.ROOT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new IssueCreationDto())))
                 .andExpect(status().isBadRequest());
@@ -154,12 +154,12 @@ public class IssueControllerTest {
         when(issueService.save(any(Issue.class))).thenReturn(IssueTestData.ISSUE);
         when(userService.findByIds(anyCollection())).thenReturn(Set.copyOf(UserTestData.USER_LIST));
 
-        MvcResult mvcResult = mockMvc.perform(post(IssueController.ENDPOINT)
+        MvcResult mvcResult = mockMvc.perform(post(IssueController.ROOT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(IssueTestData.ISSUE_CREATION_DTO)))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("location",
-                        IssueController.ENDPOINT + "/"
+                        IssueController.ROOT + "/"
                                 + IssueTestData.ISSUE.getId()))
                 .andReturn();
 
@@ -173,14 +173,14 @@ public class IssueControllerTest {
 
     @Test
     void withoutAuth_GetIssue_Returns401() throws Exception {
-        mockMvc.perform(get(IssueController.ENDPOINT + "/123"))
+        mockMvc.perform(get(IssueController.ROOT + "/123"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser
     void withoutRole_GetIssue_Returns403() throws Exception {
-        mockMvc.perform(get(IssueController.ENDPOINT + "/123"))
+        mockMvc.perform(get(IssueController.ROOT + "/123"))
                 .andExpect(status().isForbidden());
     }
 
@@ -189,7 +189,7 @@ public class IssueControllerTest {
     void withNonexistentIssue_GetIssue_Returns404() throws Exception {
         when(issueService.findById(anyInt())).thenReturn(Optional.empty());
 
-        mockMvc.perform(get(IssueController.ENDPOINT + "/123"))
+        mockMvc.perform(get(IssueController.ROOT + "/123"))
                 .andExpect(status().isNotFound());
 
         verify(issueService).findById(123);
@@ -201,7 +201,7 @@ public class IssueControllerTest {
         when(issueService.findById(anyInt())).thenReturn(Optional.of(IssueTestData.ISSUE));
         when(userService.findByIds(anyCollection())).thenReturn(Set.copyOf(UserTestData.USER_LIST));
 
-        MvcResult mvcResult = mockMvc.perform(get(IssueController.ENDPOINT + "/123"))
+        MvcResult mvcResult = mockMvc.perform(get(IssueController.ROOT + "/123"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -215,7 +215,7 @@ public class IssueControllerTest {
 
     @Test
     void withoutAuth_PutIssue_Returns401() throws Exception {
-        mockMvc.perform(put(IssueController.ENDPOINT + "/123")
+        mockMvc.perform(put(IssueController.ROOT + "/123")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(IssueTestData.ISSUE_UPDATE_DTO)))
                 .andExpect(status().isUnauthorized());
@@ -226,7 +226,7 @@ public class IssueControllerTest {
     @Test
     @WithMockUser
     void withoutRole_PutIssue_Returns403() throws Exception {
-        mockMvc.perform(put(IssueController.ENDPOINT + "/123")
+        mockMvc.perform(put(IssueController.ROOT + "/123")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(IssueTestData.ISSUE_UPDATE_DTO)))
                 .andExpect(status().isForbidden());
@@ -238,7 +238,7 @@ public class IssueControllerTest {
     @Test
     @WithMockUser(authorities = "submit:issues")
     void withoutOwnership_PutIssue_Returns403() throws Exception {
-        mockMvc.perform(put(IssueController.ENDPOINT + "/123")
+        mockMvc.perform(put(IssueController.ROOT + "/123")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(IssueTestData.ISSUE_UPDATE_DTO)))
                 .andExpect(status().isForbidden());
@@ -249,7 +249,7 @@ public class IssueControllerTest {
     @Test
     @WithMockUser(authorities = "modify:issues")
     void withInvalidInput_PutIssue_Returns400() throws Exception {
-        mockMvc.perform(put(IssueController.ENDPOINT + "/123")
+        mockMvc.perform(put(IssueController.ROOT + "/123")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString("{\"title\": true}")))
                 .andExpect(status().isBadRequest());
@@ -264,7 +264,7 @@ public class IssueControllerTest {
         when(issueService.save(any(Issue.class))).thenReturn(IssueTestData.ISSUE_UPDATE_MODIFIED_ISSUE);
         when(userService.findByIds(anyCollection())).thenReturn(Set.copyOf(UserTestData.USER_LIST));
 
-        MvcResult mvcResult = mockMvc.perform(put(IssueController.ENDPOINT + "/123")
+        MvcResult mvcResult = mockMvc.perform(put(IssueController.ROOT + "/123")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(IssueTestData.ISSUE_UPDATE_DTO)))
                 .andExpect(status().isOk())
@@ -283,7 +283,7 @@ public class IssueControllerTest {
         when(issueService.save(any(Issue.class))).thenReturn(IssueTestData.ISSUE_UPDATE_MODIFIED_ISSUE);
         when(userService.findByIds(anyCollection())).thenReturn(Set.copyOf(UserTestData.USER_LIST));
 
-        MvcResult mvcResult = mockMvc.perform(put(IssueController.ENDPOINT + "/123")
+        MvcResult mvcResult = mockMvc.perform(put(IssueController.ROOT + "/123")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(IssueTestData.ISSUE_UPDATE_DTO)))
                 .andExpect(status().isOk())
@@ -299,14 +299,14 @@ public class IssueControllerTest {
 
     @Test
     void withoutAuth_DeleteIssue_Returns401() throws Exception {
-        mockMvc.perform(delete(IssueController.ENDPOINT + "/123"))
+        mockMvc.perform(delete(IssueController.ROOT + "/123"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser
     void withoutRole_DeleteIssue_Returns403() throws Exception {
-        mockMvc.perform(delete(IssueController.ENDPOINT + "/123"))
+        mockMvc.perform(delete(IssueController.ROOT + "/123"))
                 .andExpect(status().isForbidden());
     }
 
@@ -315,7 +315,7 @@ public class IssueControllerTest {
     void withNonexistentIssue_DeleteIssue_Returns404() throws Exception {
         when(issueService.findById(anyInt())).thenReturn(Optional.empty());
 
-        mockMvc.perform(delete(IssueController.ENDPOINT + "/123"))
+        mockMvc.perform(delete(IssueController.ROOT + "/123"))
                 .andExpect(status().isNotFound());
 
         verify(issueService, times(0)).deleteById(anyInt());
@@ -327,7 +327,7 @@ public class IssueControllerTest {
     void withValidInput_DeleteIssue_Returns200() throws Exception {
         when(issueService.findById(anyInt())).thenReturn(Optional.of(IssueTestData.ISSUE));
 
-        mockMvc.perform(delete(IssueController.ENDPOINT + "/123"))
+        mockMvc.perform(delete(IssueController.ROOT + "/123"))
                 .andExpect(status().isNoContent());
 
         verify(issueService).deleteById(123);
