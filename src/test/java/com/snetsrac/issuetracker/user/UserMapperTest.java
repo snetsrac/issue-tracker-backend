@@ -4,26 +4,15 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
-import com.auth0.json.mgmt.users.User;
 import com.auth0.json.mgmt.users.UsersPage;
 import com.snetsrac.issuetracker.model.PageDto;
 import com.snetsrac.issuetracker.model.PageMetadata;
 import com.snetsrac.issuetracker.user.dto.UserDto;
 import com.snetsrac.issuetracker.user.dto.UserMapper;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class UserMapperTest {
-
-    private static List<User> users;
-    private static List<UserDto> userDtos;
-
-    @BeforeAll
-    static void initData() {
-        users = UserData.userList();
-        userDtos = UserData.userDtoList();
-    }
 
     @Test
     void withNullInput_toDto_Throws() {
@@ -32,7 +21,7 @@ public class UserMapperTest {
 
     @Test
     void withValidInput_toDto_ReturnsUserDto() {
-        assertThat(UserMapper.toDto(users.get(0))).isEqualTo(userDtos.get(0));
+        assertThat(UserMapper.toDto(UserTestData.USER)).isEqualTo(UserTestData.USER_DTO);
     }
 
     @Test
@@ -42,10 +31,10 @@ public class UserMapperTest {
     
     @Test
     void withValidInput_toPageDto_ReturnsPageDto() {
-        UsersPage usersPage = new UsersPage(users);
+        UsersPage usersPage = new UsersPage(UserTestData.USER_LIST);
         PageDto<UserDto> pageDto = new PageDto<>();
 
-        pageDto.setContent(userDtos);
+        pageDto.setContent(UserTestData.USER_DTO_LIST);
         pageDto.setPageMetadata(new PageMetadata(usersPage));
 
         assertThat(UserMapper.toPageDto(usersPage)).isEqualTo(pageDto);

@@ -7,9 +7,49 @@ import java.util.Map;
 import com.auth0.json.mgmt.users.User;
 import com.snetsrac.issuetracker.user.dto.UserDto;
 
-public class UserData {
-    
-    public static List<User> userList() {
+public class UserTestData {
+
+    public static final User USER;
+    public static final UserDto USER_DTO;
+    public static final List<User> USER_LIST;
+    public static final List<UserDto> USER_DTO_LIST;
+
+    static {
+        USER = user();
+        USER_DTO = userDto();
+        USER_LIST = userList();
+        USER_DTO_LIST = userDtoList();
+    }
+
+    private UserTestData() {
+    }
+
+    private static User user() {
+        User user = new User();
+        
+        user.setId("123");
+        user.setEmail("test@user.com");
+        user.setName("Test User");
+        user.setAppMetadata(Map.of("username", "test_user"));
+        user.setPicture("test_user.picture.com");
+
+        return user;
+    }
+
+    private static UserDto userDto() {
+        UserDto userDto = new UserDto();
+
+        userDto.setId("123");
+        userDto.setEmail("test@user.com");
+        userDto.setName("Test User");
+        userDto.setUsername("test_user");
+        userDto.setPicture("test_user.picture.com");
+
+        return userDto;
+    }
+
+    private static List<User> userList() {
+
         List<User> users = new ArrayList<>();
         users.add(new User());
         users.add(new User());
@@ -35,8 +75,9 @@ public class UserData {
 
         return users;
     }
-    
-    public static List<UserDto> userDtoList() {
+
+    private static List<UserDto> userDtoList() {
+
         List<UserDto> userDtos = new ArrayList<>();
         userDtos.add(new UserDto());
         userDtos.add(new UserDto());

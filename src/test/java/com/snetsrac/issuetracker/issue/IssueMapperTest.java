@@ -5,54 +5,31 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.List;
 import java.util.Set;
 
-import com.snetsrac.issuetracker.issue.dto.IssueCreationDto;
 import com.snetsrac.issuetracker.issue.dto.IssueDto;
 import com.snetsrac.issuetracker.issue.dto.IssueMapper;
-import com.snetsrac.issuetracker.issue.dto.IssueUpdateDto;
 import com.snetsrac.issuetracker.model.PageDto;
 import com.snetsrac.issuetracker.model.PageMetadata;
-import com.snetsrac.issuetracker.user.UserData;
-import com.snetsrac.issuetracker.user.dto.UserDto;
+import com.snetsrac.issuetracker.user.UserTestData;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
 public class IssueMapperTest {
 
-    private static List<Issue> issues;
-    private static List<IssueDto> issueDtos;
-    private static List<UserDto> userDtos;
-    private static IssueCreationDto issueCreationDto;
-    private static Issue issueCreationIssue;
-    private static IssueUpdateDto issueUpdateDto;
-    private static Issue issueUpdateIssue;
-    private static Issue issueUpdateModifiedIssue;
-
-    @BeforeAll
-    static void initData() {
-        issues = IssueData.issueList();
-        issueDtos = IssueData.issueDtoList();
-        userDtos = UserData.userDtoList();
-        issueCreationDto = IssueData.issueCreationDto();
-        issueCreationIssue = IssueData.issueCreationIssue();
-        issueUpdateDto = IssueData.issueUpdateDto();
-        issueUpdateIssue = IssueData.issueUpdateIssue();
-        issueUpdateModifiedIssue = IssueData.issueUpdateModifiedIssue();
-    }
-
     @Test
     void withNullInput_toDto_Throws() {
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> IssueMapper.toDto(null, Set.copyOf(userDtos)));
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> IssueMapper.toDto(issues.get(0), null));
+                .isThrownBy(() -> IssueMapper.toDto(null, Set.copyOf(UserTestData.USER_DTO_LIST)));
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> IssueMapper.toDto(IssueTestData.ISSUE, null));
         assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> IssueMapper.toDto(null, null));
     }
 
     @Test
     void withValidInput_toDto_ReturnsIssueDto() {
-        assertThat(IssueMapper.toDto(issues.get(0), Set.copyOf(userDtos))).isEqualTo(issueDtos.get(0));
+        assertThat(IssueMapper.toDto(IssueTestData.ISSUE, Set.copyOf(UserTestData.USER_DTO_LIST)))
+                .isEqualTo(IssueTestData.ISSUE_DTO);
     }
 
     @Test
@@ -72,20 +49,20 @@ public class IssueMapperTest {
     void withNullInput_toPageDto_Throws() {
 
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> IssueMapper.toPageDto(null, Set.copyOf(userDtos)));
+                .isThrownBy(() -> IssueMapper.toPageDto(null, Set.copyOf(UserTestData.USER_DTO_LIST)));
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> IssueMapper.toPageDto(new PageImpl<>(issues), null));
+                .isThrownBy(() -> IssueMapper.toPageDto(new PageImpl<>(IssueTestData.ISSUE_LIST), null));
         assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> IssueMapper.toPageDto(null, null));
     }
 
     @Test
     void withValidInput_toPageDto_ReturnsPageDto() {
-        Page<Issue> page = new PageImpl<>(issues);
+        Page<Issue> page = new PageImpl<>(IssueTestData.ISSUE_LIST);
         PageDto<IssueDto> pageDto = new PageDto<>();
-        pageDto.setContent(issueDtos);
+        pageDto.setContent(IssueTestData.ISSUE_DTO_LIST);
         pageDto.setPageMetadata(new PageMetadata(page));
 
-        assertThat(IssueMapper.toPageDto(page, Set.copyOf(userDtos))).isEqualTo(pageDto);
+        assertThat(IssueMapper.toPageDto(page, Set.copyOf(UserTestData.USER_DTO_LIST))).isEqualTo(pageDto);
     }
 
     @Test
@@ -100,34 +77,35 @@ public class IssueMapperTest {
     @Test
     void withInvalidInput_toIssue_Throws() {
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> IssueMapper.toIssue(null, issueCreationIssue.getSubmitterId()));
+                .isThrownBy(() -> IssueMapper.toIssue(null, IssueTestData.ISSUE_CREATION_ISSUE.getSubmitterId()));
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> IssueMapper.toIssue(issueCreationDto, null));
+                .isThrownBy(() -> IssueMapper.toIssue(IssueTestData.ISSUE_CREATION_DTO, null));
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> IssueMapper.toIssue(issueCreationDto, ""));
+                .isThrownBy(() -> IssueMapper.toIssue(IssueTestData.ISSUE_CREATION_DTO, ""));
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> IssueMapper.toIssue(null, null));
     }
 
     @Test
     void withValidInput_toIssue_ReturnsIssue() {
-        assertThat(IssueMapper.toIssue(issueCreationDto, issueCreationIssue.getSubmitterId()))
-                .isEqualTo(issueCreationIssue);
+        assertThat(IssueMapper.toIssue(IssueTestData.ISSUE_CREATION_DTO,
+                IssueTestData.ISSUE_CREATION_ISSUE.getSubmitterId()))
+                .isEqualTo(IssueTestData.ISSUE_CREATION_ISSUE);
     }
 
     @Test
     void withInvalidInput_ontoIssue_Throws() {
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> IssueMapper.ontoIssue(null, issueUpdateIssue));
+                .isThrownBy(() -> IssueMapper.ontoIssue(null, IssueTestData.ISSUE_UPDATE_ISSUE));
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> IssueMapper.ontoIssue(issueUpdateDto, null));
+                .isThrownBy(() -> IssueMapper.ontoIssue(IssueTestData.ISSUE_UPDATE_DTO, null));
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> IssueMapper.ontoIssue(null, null));
     }
 
     @Test
     void withValidInput_ontoIssue_ReturnsIssue() {
-        assertThat(IssueMapper.ontoIssue(issueUpdateDto, issueUpdateIssue))
-                .isEqualTo(issueUpdateModifiedIssue);
+        assertThat(IssueMapper.ontoIssue(IssueTestData.ISSUE_UPDATE_DTO, IssueTestData.ISSUE_UPDATE_ISSUE))
+                .isEqualTo(IssueTestData.ISSUE_UPDATE_MODIFIED_ISSUE);
     }
 }
