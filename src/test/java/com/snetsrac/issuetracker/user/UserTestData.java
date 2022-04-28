@@ -36,6 +36,7 @@ public class UserTestData {
         AUTH0_USER_LIST = auth0UserList();
     }
 
+    // Prevent initialization
     private UserTestData() {
     }
 

@@ -24,6 +24,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class IssueMapper {
 
+    // Prevent initialization
+    private IssueMapper() {
+    }
+
     /**
      * Maps an {@link Issue} entity to an {@link IssueDto}. If a user cannot be
      * found in the userMap, {@code null} will be set in its place.

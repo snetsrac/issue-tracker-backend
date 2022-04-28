@@ -49,6 +49,7 @@ public class IssueTestData {
         ISSUE_UPDATE_MODIFIED_ISSUE_DTO = issueUpdateModifiedIssueDto();
     }
 
+    // Prevent initialization
     private IssueTestData() {
     }
 

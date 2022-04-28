@@ -16,6 +16,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
 
+    // Prevent initialization
+    private UserMapper(){
+    }
+
     /**
      * Maps a {@link User} to a {@link UserDto}.
      * 
