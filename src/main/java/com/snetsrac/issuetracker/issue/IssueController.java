@@ -58,7 +58,7 @@ public class IssueController {
     @PreAuthorize("hasAuthority('read:issues')")
     public PageDto<IssueDto> getIssues(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
 
-        // Get a page of issues from the database
+        // Get a page of issues from the issue service
         Page<Issue> issuePage = issueService.findAll(pageable);
 
         // Get all relevant users and build a set of user dtos
@@ -83,7 +83,7 @@ public class IssueController {
     @PreAuthorize("hasAuthority('submit:issues')")
     public ResponseEntity<IssueDto> postIssue(@RequestBody @Valid IssueCreationDto dto, Authentication auth) {
 
-        // Save the issue to the database
+        // Save the issue to the issue service
         Issue issue = issueService.save(IssueMapper.toIssue(dto, auth.getName()));
 
         // Get the path to the new issue
@@ -111,7 +111,7 @@ public class IssueController {
     @PreAuthorize("hasAuthority('read:issues')")
     public IssueDto getIssueById(@PathVariable String id) {
         
-        // Get the issue from the database
+        // Get the issue from the issue service
         Optional<Issue> issue = issueService.findById(convertPathVariableToInt(id));
         
         // If no issue was found, return 404
@@ -142,7 +142,7 @@ public class IssueController {
     @PreAuthorize("hasAuthority('modify:issues') or (hasAuthority('submit:issues') and #id == authentication.name)")
     public IssueDto putIssue(@PathVariable String id, @RequestBody @Valid IssueUpdateDto dto) {
 
-        // Get the issue from the database
+        // Get the issue from the issue service
         Optional<Issue> existingIssue = issueService.findById(convertPathVariableToInt(id));
         
         // If no issue was found, return 404
@@ -150,7 +150,7 @@ public class IssueController {
             throw new NotFoundException("issue.not-found");
         }
 
-        // Perform the updates and save to the database
+        // Perform the updates and pass to the issue service
         Issue updatedIssue = IssueMapper.ontoIssue(dto, existingIssue.get());
         updatedIssue = issueService.save(updatedIssue);
 
