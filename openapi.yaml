@@ -15,6 +15,17 @@ tags:
   - name: Issues
     description: Represents a bug, new feature, etc.
 paths:
+  /user:
+    get:
+      tags:
+       - Users
+      summary: Get the authenticated user
+      operationId: getUser
+      security:
+        - OAuth2AuthCode: []
+      responses:
+        "200":
+          $ref: "#/components/responses/User"
   /users:
     get:
       tags:
@@ -32,21 +43,6 @@ paths:
           $ref: "#/components/responses/UsersPage"
         "400":
           $ref: "#/components/responses/BadRequest"
-  /users/{user_id}:
-    get:
-      tags:
-        - Users
-      summary: Get a user by user id
-      operationId: getUserById
-      security:
-        - OAuth2AuthCode: ["read:users"]
-      parameters:
-        - $ref: "#/components/parameters/userId"
-      responses:
-        "200":
-          $ref: "#/components/responses/User"
-        "404":
-          $ref: "#/components/responses/NotFound"
   /users/{username}:
     get:
       tags:
@@ -62,44 +58,44 @@ paths:
           $ref: "#/components/responses/User"
         "404":
           $ref: "#/components/responses/NotFound"
-    put:
-      tags:
-        - Users
-      summary: Update a user's information
-      operationId: updateUser
-      security:
-        - OAuth2AuthCode: ["modify:users"]
-      parameters:
-        - $ref: "#/components/parameters/username"
-      requestBody:
-        $ref: "#/components/requestBodies/updateUser"
-      responses:
-        "200":
-          $ref: "#/components/responses/User"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "404":
-          $ref: "#/components/responses/NotFound"
-  /users/{username}/issues:
-    get:
-      tags:
-        - Users
-      summary: Get a paginated list of the user's submitted/assigned issues
-      operationId: getUserIssues
-      security:
-        - OAuth2AuthCode: ["read:users", "read:issues"]
-      parameters:
-        - $ref: "#/components/parameters/username"
-        - $ref: "#/components/parameters/page"
-        - $ref: "#/components/parameters/size"
-        - $ref: "#/components/parameters/sort"
-      responses:
-        "200":
-          $ref: "#/components/responses/UsersPage"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "404":
-          $ref: "#/components/responses/NotFound"
+  #   put:
+  #     tags:
+  #       - Users
+  #     summary: Update a user's information
+  #     operationId: updateUser
+  #     security:
+  #       - OAuth2AuthCode: ["modify:users"]
+  #     parameters:
+  #       - $ref: "#/components/parameters/username"
+  #     requestBody:
+  #       $ref: "#/components/requestBodies/updateUser"
+  #     responses:
+  #       "200":
+  #         $ref: "#/components/responses/User"
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+  #       "404":
+  #         $ref: "#/components/responses/NotFound"
+  # /users/{username}/issues:
+  #   get:
+  #     tags:
+  #       - Users
+  #     summary: Get a paginated list of the user's submitted/assigned issues
+  #     operationId: getUserIssues
+  #     security:
+  #       - OAuth2AuthCode: ["read:users", "read:issues"]
+  #     parameters:
+  #       - $ref: "#/components/parameters/username"
+  #       - $ref: "#/components/parameters/page"
+  #       - $ref: "#/components/parameters/size"
+  #       - $ref: "#/components/parameters/sort"
+  #     responses:
+  #       "200":
+  #         $ref: "#/components/responses/UsersPage"
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+  #       "404":
+  #         $ref: "#/components/responses/NotFound"
   /issues:
     get:
       tags:
@@ -195,8 +191,6 @@ components:
           type: string
         name:
           type: string
-        nickname:
-          type: string
         username:
           type: string
         picture:
@@ -230,9 +224,6 @@ components:
           items:
             $ref: "#/components/schemas/User"
         createdAt:
-          type: string
-          format: date-time
-        updatedAt:
           type: string
           format: date-time
     IssueStatus:
