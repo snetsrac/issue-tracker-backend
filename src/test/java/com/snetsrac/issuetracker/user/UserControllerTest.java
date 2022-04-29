@@ -52,29 +52,6 @@ public class UserControllerTest {
                 .build();
     }
 
-    // GET /user
-
-    @Test
-    void withoutAuth_GetAuthUser_Returns401() throws Exception {
-        mockMvc.perform(get(UserController.ROOT + "/user"))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @WithMockUser(username = "test_user")
-    void withAuth_GetAuthUser_Returns200() throws Exception {
-        when(userService.findById(anyString())).thenReturn(Optional.of(UserTestData.USER));
-
-        MvcResult mvcResult = mockMvc.perform(get(UserController.ROOT + "/user"))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        verify(userService).findById("test_user");
-        assertThat(mvcResult.getResponse().getContentAsString())
-                .isEqualToIgnoringWhitespace(
-                        objectMapper.writeValueAsString(UserTestData.USER_DTO));
-    }
-
     // GET /users
 
     @Test
