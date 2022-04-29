@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.snetsrac.issuetracker.error.EnumValueNotPresentException;
 import com.snetsrac.issuetracker.model.BaseEntity;
 
-import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -97,12 +96,10 @@ public class Issue extends BaseEntity {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = "postgresql_enum")
     @Column(name = "status", nullable = false)
     private Status status;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = "postgresql_enum")
     @Column(name = "priority", nullable = false)
     private Priority priority;
 
