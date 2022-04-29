@@ -1,6 +1,5 @@
 package com.snetsrac.issuetracker.seed;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -74,7 +73,6 @@ public class DataLoader implements CommandLineRunner {
                 issue.setPriority(getRandomEnumValue(Priority.class));
                 issue.setSubmitterId(getRandomSubmitterId());
                 issue.setAssigneeIds(getRandomAssigneeIds());
-                issue.setCreatedAt(Instant.now());
 
                 issues.add(issue);
             }

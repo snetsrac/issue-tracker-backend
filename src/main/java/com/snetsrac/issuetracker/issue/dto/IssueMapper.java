@@ -101,7 +101,7 @@ public class IssueMapper {
     }
 
     /**
-     * Maps an {@link IssueCreationDto} onto an existing {@link Issue}, modifying it
+     * Maps an {@link IssueUpdateDto} onto an existing {@link Issue}, modifying it
      * in-place to be persisted to the database during an update operation. Assumes
      * dto is valid.
      * 

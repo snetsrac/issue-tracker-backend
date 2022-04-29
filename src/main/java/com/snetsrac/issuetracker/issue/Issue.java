@@ -1,6 +1,7 @@
 package com.snetsrac.issuetracker.issue;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -156,6 +157,10 @@ public class Issue extends BaseEntity {
     }
 
     public Set<String> getAssigneeIds() {
+        if (assigneeIds == null) {
+            assigneeIds = new HashSet<>();
+        }
+
         return assigneeIds;
     }
 
