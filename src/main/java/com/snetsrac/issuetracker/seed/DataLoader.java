@@ -24,9 +24,6 @@ import org.springframework.stereotype.Component;
 public class DataLoader implements CommandLineRunner {
     private static final int NUM_ISSUES = 1000;
 
-    @Value("${DEMO_USER_ID}")
-    private String DEMO_USER_ID;
-
     @Value("${DEMO_SUBMITTER_ID}")
     private String DEMO_SUBMITTER_ID;
 
