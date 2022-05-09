@@ -42,18 +42,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     PasswordEncoder passwordEncoderBean() {
         return new BCryptPasswordEncoder();
     }
-    
+
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedMethods(List.of(
-            HttpMethod.GET.name(),
-            HttpMethod.POST.name(),
-            HttpMethod.PUT.name(),
-            HttpMethod.DELETE.name()
-        ));
+                HttpMethod.GET.name(),
+                HttpMethod.POST.name(),
+                HttpMethod.PUT.name(),
+                HttpMethod.DELETE.name()));
 
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://editor.swagger.io"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://editor.swagger.io",
+                "https://delicate-jalebi-e3d6b4.netlify.app", "https://issuetracker.chriscarstens.com"));
 
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
 
