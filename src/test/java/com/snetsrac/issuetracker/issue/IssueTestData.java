@@ -219,6 +219,7 @@ public class IssueTestData {
         dto.setDescription("This is a modified test issue.");
         dto.setStatus(Status.MORE_INFO_NEEDED.toString());
         dto.setPriority(Priority.LOW.toString());
+        dto.setAssigneeIds(Set.of(UserTestData.USER_LIST.get(0).getId()));
 
         return dto;
     }
@@ -253,8 +254,6 @@ public class IssueTestData {
         issue.setSubmitterId(UserTestData.USER.getId());
         Set<String> issue0Assignees = new LinkedHashSet<>();
         issue0Assignees.add(UserTestData.USER_LIST.get(0).getId());
-        issue0Assignees.add(UserTestData.USER_LIST.get(1).getId());
-        issue0Assignees.add(UserTestData.USER_LIST.get(2).getId());
         issue.setAssigneeIds(issue0Assignees);
         issue.setCreatedAt(Instant.EPOCH.plusSeconds(1));
 
@@ -272,8 +271,6 @@ public class IssueTestData {
         dto.setSubmitter(UserTestData.USER_DTO_LIST.get(0));
         Set<UserDto> issue0Assignees = new LinkedHashSet<>();
         issue0Assignees.add(UserTestData.USER_DTO_LIST.get(0));
-        issue0Assignees.add(UserTestData.USER_DTO_LIST.get(1));
-        issue0Assignees.add(UserTestData.USER_DTO_LIST.get(2));
         dto.setAssignees(issue0Assignees);
         dto.setCreatedAt(Instant.EPOCH.plusSeconds(1).toString());
 

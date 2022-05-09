@@ -66,4 +66,8 @@ public class IssueUpdateDto {
         return assigneeIds;
     }
 
+    public void setAssigneeIds(Set<String> assigneeIds) {
+        this.assigneeIds = assigneeIds;
+    }
+
 }

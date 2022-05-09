@@ -120,6 +120,7 @@ public class IssueMapper {
         issue.setDescription(dto.getDescription());
         issue.setStatus(Status.valueOf(dto.getStatus().replaceAll(" ", "_").toUpperCase()));
         issue.setPriority(Priority.valueOf(dto.getPriority().replaceAll(" ", "_").toUpperCase()));
+        issue.setAssigneeIds(dto.getAssigneeIds());
 
         return issue;
     }
