@@ -16,10 +16,8 @@ import org.jboss.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-@Profile("dev")
 @Component
 public class DataLoader implements CommandLineRunner {
     private static final int NUM_ISSUES = 1000;
@@ -49,7 +47,7 @@ public class DataLoader implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         logger.info("Running DataLoader...");
-        
+
         submitterIds = new String[] { DEMO_SUBMITTER_ID, DEMO_DEVELOPER_ID, DEMO_MANAGER_ID, DEMO_ADMIN_ID };
         assigneeIds = new String[] { DEMO_DEVELOPER_ID, DEMO_MANAGER_ID, DEMO_ADMIN_ID };
         insertIssues();
